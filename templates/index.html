@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vector Archive</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- 좌측 2 열 -->
+            <div class="col-md-2">
+                <div>
+                    <label for="projectName">Project Name</label>
+                    <select id="projectName" class="form-control"></select>
+                </div>
+                <div>
+                    <label for="evtVersion">Evt Version</label>
+                    <select id="evtVersion" class="form-control"></select>
+                </div>
+                <div>
+                    <label for="domainName">Domain Name</label>
+                    <select id="domainName" class="form-control"></select>
+                </div>
+                <div>
+                    <label for="fileUpload">File Upload</label>
+                    <input type="file" id="fileUpload" class="form-control">
+                </div>
+                <div>
+                    <label for="userID">User ID</label>
+                    <input type="text" id="userID" class="form-control">
+                </div>
+            </div>
+
+            <!-- 중앙 5 열 -->
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-header">
+                        <strong>Vector Sets</strong>
+                        <button id="refreshBtn" class="btn btn-outline-secondary float-right">🔄</button>
+                    </div>
+                    <div class="card-body">
+                        <input type="text" id="searchVectorset" class="form-control mb-3" placeholder="Search...">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Vectorset</th>
+                                    <th>Owner</th>
+                                    <th>Data Modified</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vectorsetList">
+                                <!-- 벡터셋 목록이 여기 표시됩니다 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 우측 5 열 -->
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-header">
+                        <div>Vectors</div>
+                        <div id="vectorDetails">[Project] > [Evt] > [Domain] > [Vectorset]</div>
+                        <div>File: <span id="fileName"></span></div>
+                    </div>
+                    <div class="card-body">
+                        <input type="text" id="searchVector" class="form-control mb-3" placeholder="Search...">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Index</th>
+                                    <th>Vectorset</th>
+                                    <th>Control Name</th>
+                                    <th>Address</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vectorList">
+                                <!-- 벡터 목록이 여기 표시됩니다 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
