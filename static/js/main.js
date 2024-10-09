@@ -185,6 +185,15 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error loading vector data:', error));
     }
 
+    // 텍스트 전체 선택 함수
+    function selectAllText(element) {
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        const selection = window.getSelection();
+        selection.removeAllRanges();  // 이전 선택을 초기화
+        selection.addRange(range);    // 새로 선택
+    }
+
     // Vector 데이터를 벡터 테이블에 채우는 함수 (더블클릭 시 수정 가능)
     function populateVectorTable(table, items) {
         table.innerHTML = '';
@@ -207,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
             controlNameCell.addEventListener('dblclick', function() {
                 controlNameCell.contentEditable = true;
                 controlNameCell.focus();
-                document.execCommand('selectAll', false, null); // 전체 블록 설정
+                selectAllText(controlNameCell); // 더블클릭 시 텍스트 전체 블럭 설정
             });
             controlNameCell.addEventListener('blur', function() {
                 controlNameCell.contentEditable = false;
@@ -216,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
             controlNameCell.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    controlNameCell.blur(); // 엔터를 치면 수정 종료
+                    controlNameCell.blur(); // 엔터를 누르면 수정 종료
                 }
             });
             row.appendChild(controlNameCell);
@@ -227,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
             addressCell.addEventListener('dblclick', function() {
                 addressCell.contentEditable = true;
                 addressCell.focus();
-                document.execCommand('selectAll', false, null); // 전체 블록 설정
+                selectAllText(addressCell); // 더블클릭 시 텍스트 전체 블럭 설정
             });
             addressCell.addEventListener('blur', function() {
                 addressCell.contentEditable = false;
@@ -236,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
             addressCell.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    addressCell.blur(); // 엔터를 치면 수정 종료
+                    addressCell.blur(); // 엔터를 누르면 수정 종료
                 }
             });
             row.appendChild(addressCell);
@@ -247,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dataCell.addEventListener('dblclick', function() {
                 dataCell.contentEditable = true;
                 dataCell.focus();
-                document.execCommand('selectAll', false, null); // 전체 블록 설정
+                selectAllText(dataCell); // 더블클릭 시 텍스트 전체 블럭 설정
             });
             dataCell.addEventListener('blur', function() {
                 dataCell.contentEditable = false;
@@ -256,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dataCell.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    dataCell.blur(); // 엔터를 치면 수정 종료
+                    dataCell.blur(); // 엔터를 누르면 수정 종료
                 }
             });
             row.appendChild(dataCell);
