@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const refreshBtn = document.getElementById('refreshBtn');
 
     let hierarchyData = {};
+    let groupedItemsMap = {}; // 그룹화된 items을 저장하는 map
 
     // 초기 로딩 시 프로젝트 목록 로드
     fetch('/api/v1/va/hierarchy')
@@ -20,27 +21,22 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => console.error('Error fetching hierarchy:', error));
 
-    // 프로젝트 변경 시 evt 버전 업데이트
     projectSelect.addEventListener('change', function() {
         updateEvtVersions();
     });
 
-    // evt 버전 변경 시 도메인 업데이트
     evtVersionSelect.addEventListener('change', function() {
         updateDomains();
     });
 
-    // 도메인 변경 시 벡터셋 목록 업데이트
     domainSelect.addEventListener('change', function() {
         updateVectorsetList();
     });
 
-    // 새로고침 버튼 클릭 시 벡터셋 목록 새로고침
     refreshBtn.addEventListener('click', function() {
         updateVectorsetList();
     });
 
-    // evt 버전 업데이트 함수
     function updateEvtVersions() {
         const project = projectSelect.value;
         if (hierarchyData[project]) {
@@ -53,7 +49,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 도메인 업데이트 함수
     function updateDomains() {
         const project = projectSelect.value;
         const evtVersion = evtVersionSelect.value;
@@ -66,7 +61,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 벡터셋 목록 업데이트 함수
     function updateVectorsetList() {
         const project = projectSelect.value;
         const evtVersion = evtVersionSelect.value;
@@ -76,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch(`/api/v1/va/vectorset-list?project_name=${project}&evt_version=${evtVersion}&domain_name=${domain}`)
                 .then(response => response.json())
                 .then(data => {
-                    populateTable(vectorSetTable, groupByVectorNameAndOwner(data.items));
+                    populateTable(vectorSetTable, groupByVectorNameAndOwner(data.items)); // 데이터를 그룹화하여 전달
                 })
                 .catch(error => console.error('Error fetching vectorset list:', error));
         }
@@ -92,43 +86,56 @@ document.addEventListener('DOMContentLoaded', function() {
                 groupedItems[key] = {
                     vector_name: item.vector_name,
                     owner: item.owner,
-                    modified: [item.modified] // 수정시간을 배열로 저장
+                    modified: [item.modified],
+                    fileNames: [item.file_name] // file_name 저장
                 };
             } else {
-                groupedItems[key].modified.push(item.modified); // 같은 그룹에 수정시간 추가
+                groupedItems[key].modified.push(item.modified);
+                groupedItems[key].fileNames.push(item.file_name); // 동일한 그룹에 해당하는 file_name 추가
             }
         });
 
+        groupedItemsMap = groupedItems; // 그룹화된 items 저장
         return Object.values(groupedItems);
     }
 
-    // 테이블에 데이터 채우는 함수 (그룹화된 항목과 수정시간 콤보박스 추가)
+    // 벡터셋 테이블에 데이터 채우는 함수 + LOAD 버튼 추가
     function populateTable(table, groupedItems) {
         table.innerHTML = '';
         groupedItems.forEach(item => {
             const row = document.createElement('tr');
 
-            // Vectorset Name
             const vectorNameCell = document.createElement('td');
             vectorNameCell.textContent = item.vector_name;
             row.appendChild(vectorNameCell);
 
-            // Owner
             const ownerCell = document.createElement('td');
             ownerCell.textContent = item.owner;
             row.appendChild(ownerCell);
 
-            // Modified - 콤보박스로 표시
             const modifiedCell = document.createElement('td');
             const selectElement = document.createElement('select');
-            item.modified.forEach(dateString => {
+            item.modified.sort((a, b) => new Date(b) - new Date(a));
+            item.modified.forEach((dateString, index) => {
                 const option = document.createElement('option');
-                option.value = dateString;
-                option.textContent = formatDate(dateString); // 날짜 형식 변환
+                option.value = item.fileNames[index]; // file_name을 option의 value로 설정
+                option.textContent = formatDate(dateString);
                 selectElement.appendChild(option);
             });
             modifiedCell.appendChild(selectElement);
             row.appendChild(modifiedCell);
+
+            // LOAD 버튼 추가
+            const loadButtonCell = document.createElement('td');
+            const loadButton = document.createElement('button');
+            loadButton.textContent = 'LOAD';
+            loadButton.classList.add('btn', 'btn-primary', 'btn-sm');
+            loadButton.addEventListener('click', function() {
+                const selectedFileName = selectElement.value; // file_name을 사용
+                loadVectorData(selectedFileName);
+            });
+            loadButtonCell.appendChild(loadButton);
+            row.appendChild(loadButtonCell);
 
             table.appendChild(row);
         });
@@ -147,6 +154,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return `${year}.${month}.${day}. ${hours}:${minutes}:${seconds}`;
     }
 
+    // Vectorset 데이터를 로드하는 함수 (file_name을 사용하여 요청)
+    function loadVectorData(fileName) {
+        fetch(`/api/v1/va/vector-list?file_name=${fileName}`)
+            .then(response => response.json())
+            .then(data => {
+                populateTable(vectorTable, data.items);
+            })
+            .catch(error => console.error('Error loading vector data:', error));
+    }
+
     // select에 데이터 채우는 함수
     function populateSelect(selectElement, items) {
         selectElement.innerHTML = '';
@@ -158,17 +175,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 벡터셋 테이블 검색 기능
     document.getElementById('searchVectorset').addEventListener('input', function() {
         filterTable('searchVectorset', 'vectorsetList');
     });
 
-    // 벡터 테이블 검색 기능
     document.getElementById('searchVector').addEventListener('input', function() {
         filterTable('searchVector', 'vectorList');
     });
 
-    // 테이블 필터링 함수
     function filterTable(searchId, tableId) {
         const query = document.getElementById(searchId).value.toLowerCase();
         const rows = document.getElementById(tableId).getElementsByTagName('tr');
@@ -177,31 +191,4 @@ document.addEventListener('DOMContentLoaded', function() {
             row.style.display = rowText.includes(query) ? '' : 'none';
         });
     }
-
-    // 파일 업로드 이벤트 핸들링
-    document.getElementById('fileUpload').addEventListener('change', function() {
-        const fileInput = this;
-        const file = fileInput.files[0];
-        const userId = document.getElementById('userID').value;
-
-        if (file && userId) {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('user_id', userId);
-
-            fetch('/api/v1/va/upload-file', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert('File uploaded successfully');
-            })
-            .catch(error => {
-                console.error('Error uploading file:', error);
-            });
-        } else {
-            alert('Please select a file and enter your user ID');
-        }
-    });
 });
