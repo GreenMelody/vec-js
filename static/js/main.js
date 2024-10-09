@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const domainSelect = document.getElementById('domainName');
     const vectorSetTable = document.getElementById('vectorsetList');
     const vectorTable = document.getElementById('vectorList');
-    const vectorDetails = document.getElementById('vectorDetails');
-    const fileNameDisplay = document.getElementById('fileName');
+    const vectorDetails = document.getElementById('vectorDetails'); // 파일 상세 표시 부분
+    const fileNameDisplay = document.getElementById('fileName'); // 파일 이름 표시 부분
     const refreshBtn = document.getElementById('refreshBtn');
 
     let hierarchyData = {};
@@ -141,10 +141,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const loadButtonCell = document.createElement('td');
             const loadButton = document.createElement('button');
             loadButton.textContent = 'LOAD';
-            loadButton.classList.add('btn', 'btn-primary', 'btn-sm');
+            loadButton.classList.add('btn', 'btn-secondary', 'btn-sm');
             loadButton.addEventListener('click', function() {
                 const selectedIndex = selectElement.value; // 선택된 index 가져오기
                 const selectedFileName = item.fileNames[selectedIndex]; // index를 통해 file_name 참조
+                const project = projectSelect.value;
+                const evtVersion = evtVersionSelect.value;
+                const domain = domainSelect.value;
+
+                // 벡터셋 정보 업데이트
+                vectorDetails.textContent = `${project} > ${evtVersion} > ${domain} > ${item.vector_name}`;
+                fileNameDisplay.textContent = selectedFileName;
+
                 loadVectorData(selectedFileName);
             });
             loadButtonCell.appendChild(loadButton);
@@ -172,9 +180,44 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`/api/v1/va/vector-list?file_name=${fileName}`)
             .then(response => response.json())
             .then(data => {
-                populateTable(vectorTable, data.items);
+                populateVectorTable(vectorTable, data.items);
             })
             .catch(error => console.error('Error loading vector data:', error));
+    }
+
+    // Vector 데이터를 벡터 테이블에 채우는 함수
+    function populateVectorTable(table, items) {
+        table.innerHTML = '';
+        items.forEach(item => {
+            const row = document.createElement('tr');
+
+            // Index
+            const indexCell = document.createElement('td');
+            indexCell.textContent = item.index;
+            row.appendChild(indexCell);
+
+            // Vectorset
+            const vectorsetCell = document.createElement('td');
+            vectorsetCell.textContent = item.linked_vectorset.vectorset_name || item.control_name;
+            row.appendChild(vectorsetCell);
+
+            // Control Name
+            const controlNameCell = document.createElement('td');
+            controlNameCell.textContent = item.control_name;
+            row.appendChild(controlNameCell);
+
+            // Address
+            const addressCell = document.createElement('td');
+            addressCell.textContent = item.address;
+            row.appendChild(addressCell);
+
+            // Data
+            const dataCell = document.createElement('td');
+            dataCell.textContent = item.data;
+            row.appendChild(dataCell);
+
+            table.appendChild(row);
+        });
     }
 
     // select에 데이터 채우는 함수
