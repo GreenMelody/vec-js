@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const vectorDetails = document.getElementById('vectorDetails'); // 파일 상세 표시 부분
     const fileNameDisplay = document.getElementById('fileName'); // 파일 이름 표시 부분
     const refreshBtn = document.getElementById('refreshBtn');
-
+    
     let hierarchyData = {};
     let groupedItemsMap = {}; // 그룹화된 items을 저장하는 map
 
@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error loading vector data:', error));
     }
 
-    // Vector 데이터를 벡터 테이블에 채우는 함수
+    // Vector 데이터를 벡터 테이블에 채우는 함수 (더블클릭시 수정 가능)
     function populateVectorTable(table, items) {
         table.innerHTML = '';
         items.forEach(item => {
@@ -201,19 +201,31 @@ document.addEventListener('DOMContentLoaded', function() {
             vectorsetCell.textContent = item.linked_vectorset.vectorset_name || item.control_name;
             row.appendChild(vectorsetCell);
 
-            // Control Name
+            // Control Name (더블클릭으로 수정 가능)
             const controlNameCell = document.createElement('td');
             controlNameCell.textContent = item.control_name;
+            controlNameCell.contentEditable = true;
+            controlNameCell.addEventListener('blur', function() {
+                item.control_name = controlNameCell.textContent;
+            });
             row.appendChild(controlNameCell);
 
-            // Address
+            // Address (더블클릭으로 수정 가능)
             const addressCell = document.createElement('td');
             addressCell.textContent = item.address;
+            addressCell.contentEditable = true;
+            addressCell.addEventListener('blur', function() {
+                item.address = addressCell.textContent;
+            });
             row.appendChild(addressCell);
 
-            // Data
+            // Data (더블클릭으로 수정 가능)
             const dataCell = document.createElement('td');
             dataCell.textContent = item.data;
+            dataCell.contentEditable = true;
+            dataCell.addEventListener('blur', function() {
+                item.data = dataCell.textContent;
+            });
             row.appendChild(dataCell);
 
             table.appendChild(row);
