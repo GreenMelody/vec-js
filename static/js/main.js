@@ -48,6 +48,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     saveBtn.addEventListener('click', function() {
+        if (!vectorData || vectorData.length === 0) {
+            alert('NO DATA TO SAVE');
+            return;
+        }
+
         if (currentFileName) {
             saveVectorData(currentFileName);
         } else {
@@ -56,6 +61,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     saveAsBtn.addEventListener('click', function() {
+        if (!vectorData || vectorData.length === 0) {
+            alert('NO DATA TO SAVE');
+            return;
+        }
+
         populateSelect(saveAsProject, Object.keys(hierarchyData));
         saveAsVectorset.value = ''; // 초기화
         saveAsModal.show();
