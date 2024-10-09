@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Vector 데이터를 벡터 테이블에 채우는 함수 (더블클릭 시 수정 가능)
     function populateVectorTable(table, items) {
         table.innerHTML = '';
-        items.forEach(item => {
+        items.forEach((item, rowIndex) => {
             const row = document.createElement('tr');
 
             // Index
@@ -213,65 +213,62 @@ document.addEventListener('DOMContentLoaded', function() {
             // Control Name (더블클릭으로 수정 가능)
             const controlNameCell = document.createElement('td');
             controlNameCell.textContent = item.control_name;
-            controlNameCell.addEventListener('dblclick', function() {
-                controlNameCell.contentEditable = true;
-                controlNameCell.focus();
-                selectAllText(controlNameCell); // 더블클릭 시 텍스트 전체 블럭 설정
-            });
-            controlNameCell.addEventListener('blur', function() {
-                controlNameCell.contentEditable = false;
-                item.control_name = controlNameCell.textContent;
-            });
-            controlNameCell.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    controlNameCell.blur(); // 엔터를 누르면 수정 종료
-                }
-            });
+            makeEditable(controlNameCell, item, 'control_name', rowIndex, 2);
             row.appendChild(controlNameCell);
 
             // Address (더블클릭으로 수정 가능)
             const addressCell = document.createElement('td');
             addressCell.textContent = item.address;
-            addressCell.addEventListener('dblclick', function() {
-                addressCell.contentEditable = true;
-                addressCell.focus();
-                selectAllText(addressCell); // 더블클릭 시 텍스트 전체 블럭 설정
-            });
-            addressCell.addEventListener('blur', function() {
-                addressCell.contentEditable = false;
-                item.address = addressCell.textContent;
-            });
-            addressCell.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addressCell.blur(); // 엔터를 누르면 수정 종료
-                }
-            });
+            makeEditable(addressCell, item, 'address', rowIndex, 3);
             row.appendChild(addressCell);
 
             // Data (더블클릭으로 수정 가능)
             const dataCell = document.createElement('td');
             dataCell.textContent = item.data;
-            dataCell.addEventListener('dblclick', function() {
-                dataCell.contentEditable = true;
-                dataCell.focus();
-                selectAllText(dataCell); // 더블클릭 시 텍스트 전체 블럭 설정
-            });
-            dataCell.addEventListener('blur', function() {
-                dataCell.contentEditable = false;
-                item.data = dataCell.textContent;
-            });
-            dataCell.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    dataCell.blur(); // 엔터를 누르면 수정 종료
-                }
-            });
+            makeEditable(dataCell, item, 'data', rowIndex, 4);
             row.appendChild(dataCell);
 
             table.appendChild(row);
         });
+
+        // 셀을 더블클릭해서 수정할 수 있게 만드는 함수
+        function makeEditable(cell, item, field, rowIndex, cellIndex) {
+            cell.addEventListener('dblclick', function() {
+                cell.contentEditable = true;
+                cell.focus();
+                selectAllText(cell); // 더블클릭 시 텍스트 전체 블럭 설정
+            });
+
+            cell.addEventListener('blur', function() {
+                cell.contentEditable = false;
+                item[field] = cell.textContent;
+            });
+
+            cell.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    cell.blur(); // 엔터를 누르면 수정 종료 후 아래 셀로 이동
+                    moveToCell(rowIndex + 1, cellIndex);
+                } else if (e.key === 'Tab') {
+                    e.preventDefault();
+                    cell.blur(); // 탭을 누르면 수정 종료 후 오른쪽 셀로 이동
+                    moveToCell(rowIndex, cellIndex + 1);
+                }
+            });
+        }
+
+        // 특정 셀로 이동하여 수정 가능하게 설정하는 함수
+        function moveToCell(rowIndex, cellIndex) {
+            const rows = table.getElementsByTagName('tr');
+            if (rows[rowIndex]) {
+                const targetCell = rows[rowIndex].getElementsByTagName('td')[cellIndex];
+                if (targetCell) {
+                    targetCell.contentEditable = true;
+                    targetCell.focus();
+                    selectAllText(targetCell); // 이동된 셀 전체 블럭 설정
+                }
+            }
+        }
     }
 
     // select에 데이터 채우는 함수
