@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const vectorTable = document.getElementById('vectorList');
     const vectorDetails = document.getElementById('vectorDetails');
     const fileNameDisplay = document.getElementById('fileName');
+    const refreshBtn = document.getElementById('refreshBtn');
 
     let hierarchyData = {};  // 데이터를 전역 변수로 저장
 
@@ -32,6 +33,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // 도메인 변경 시 벡터셋 목록 업데이트
     domainSelect.addEventListener('change', function() {
         updateVectorsetList();  // 벡터셋 목록 업데이트 함수 호출
+    });
+
+    // 새로고침 버튼 클릭 시 벡터셋 목록 새로고침
+    refreshBtn.addEventListener('click', function() {
+        updateVectorsetList();  // 벡터셋 목록을 새로고침
     });
 
     // evt 버전 업데이트 함수
