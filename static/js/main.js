@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error loading vector data:', error));
     }
 
-    // Vector 데이터를 벡터 테이블에 채우는 함수 (더블클릭시 수정 가능)
+    // Vector 데이터를 벡터 테이블에 채우는 함수 (더블클릭 시 수정 가능)
     function populateVectorTable(table, items) {
         table.innerHTML = '';
         items.forEach(item => {
@@ -204,8 +204,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Control Name (더블클릭으로 수정 가능)
             const controlNameCell = document.createElement('td');
             controlNameCell.textContent = item.control_name;
-            controlNameCell.contentEditable = true;
+            controlNameCell.addEventListener('dblclick', function() {
+                controlNameCell.contentEditable = true;
+                controlNameCell.focus();
+                document.execCommand('selectAll', false, null); // 전체 블록 설정
+            });
             controlNameCell.addEventListener('blur', function() {
+                controlNameCell.contentEditable = false;
                 item.control_name = controlNameCell.textContent;
             });
             controlNameCell.addEventListener('keydown', function(e) {
@@ -219,8 +224,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Address (더블클릭으로 수정 가능)
             const addressCell = document.createElement('td');
             addressCell.textContent = item.address;
-            addressCell.contentEditable = true;
+            addressCell.addEventListener('dblclick', function() {
+                addressCell.contentEditable = true;
+                addressCell.focus();
+                document.execCommand('selectAll', false, null); // 전체 블록 설정
+            });
             addressCell.addEventListener('blur', function() {
+                addressCell.contentEditable = false;
                 item.address = addressCell.textContent;
             });
             addressCell.addEventListener('keydown', function(e) {
@@ -234,8 +244,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Data (더블클릭으로 수정 가능)
             const dataCell = document.createElement('td');
             dataCell.textContent = item.data;
-            dataCell.contentEditable = true;
+            dataCell.addEventListener('dblclick', function() {
+                dataCell.contentEditable = true;
+                dataCell.focus();
+                document.execCommand('selectAll', false, null); // 전체 블록 설정
+            });
             dataCell.addEventListener('blur', function() {
+                dataCell.contentEditable = false;
                 item.data = dataCell.textContent;
             });
             dataCell.addEventListener('keydown', function(e) {
@@ -249,7 +264,6 @@ document.addEventListener('DOMContentLoaded', function() {
             table.appendChild(row);
         });
     }
-
 
     // select에 데이터 채우는 함수
     function populateSelect(selectElement, items) {
