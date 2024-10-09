@@ -7,7 +7,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const vectorDetails = document.getElementById('vectorDetails'); // 파일 상세 표시 부분
     const fileNameDisplay = document.getElementById('fileName'); // 파일 이름 표시 부분
     const refreshBtn = document.getElementById('refreshBtn');
-    
+    const saveBtn = document.getElementById('saveBtn'); // Save 버튼
+    const saveAsBtn = document.getElementById('saveAsBtn'); // Save As 버튼
+
+    let currentFileName = ''; // 현재 로드된 파일 이름 저장
+    let vectorData = []; // 현재 벡터 데이터 저장
     let hierarchyData = {};
     let groupedItemsMap = {}; // 그룹화된 items을 저장하는 map
 
@@ -35,6 +39,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     refreshBtn.addEventListener('click', function() {
         updateVectorsetList();
+    });
+
+    saveBtn.addEventListener('click', function() {
+        if (currentFileName) {
+            saveVectorData(currentFileName);
+        } else {
+            alert('No file loaded.');
+        }
+    });
+
+    saveAsBtn.addEventListener('click', function() {
+        const newFileName = prompt('Enter new file name:');
+        if (newFileName) {
+            saveVectorData(newFileName);
+        }
     });
 
     function updateEvtVersions() {
@@ -180,7 +199,9 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`/api/v1/va/vector-list?file_name=${fileName}`)
             .then(response => response.json())
             .then(data => {
-                populateVectorTable(vectorTable, data.items);
+                vectorData = data.items;
+                populateVectorTable(vectorTable, vectorData);
+                currentFileName = fileName; // 현재 로드된 파일 이름 저장
             })
             .catch(error => console.error('Error loading vector data:', error));
     }
@@ -190,8 +211,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const range = document.createRange();
         range.selectNodeContents(element);
         const selection = window.getSelection();
-        selection.removeAllRanges();  // 이전 선택을 초기화
-        selection.addRange(range);    // 새로 선택
+        selection.removeAllRanges();
+        selection.addRange(range);
     }
 
     // Vector 데이터를 벡터 테이블에 채우는 함수 (더블클릭 시 수정 가능)
@@ -236,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
             cell.addEventListener('dblclick', function() {
                 cell.contentEditable = true;
                 cell.focus();
-                selectAllText(cell); // 더블클릭 시 텍스트 전체 블럭 설정
+                selectAllText(cell);
             });
 
             cell.addEventListener('blur', function() {
@@ -247,25 +268,25 @@ document.addEventListener('DOMContentLoaded', function() {
             cell.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    cell.blur(); // 엔터를 누르면 수정 종료 후 아래 셀로 이동
+                    cell.blur();
                     moveToCell(rowIndex + 1, cellIndex);
                 } else if (e.key === 'Tab' && !e.shiftKey) {
                     e.preventDefault();
-                    cell.blur(); // 탭을 누르면 수정 종료 후 옆 셀로 이동 또는 다음 행으로 이동
+                    cell.blur();
                     const isLastCell = (cellIndex === table.rows[rowIndex].cells.length - 1);
                     if (isLastCell) {
-                        moveToCell(rowIndex + 1, 2); // 다음 행의 첫 번째 수정 가능한 셀로 이동 (2번째 셀)
+                        moveToCell(rowIndex + 1, 2);
                     } else {
-                        moveToCell(rowIndex, cellIndex + 1); // 같은 행의 다음 셀로 이동
+                        moveToCell(rowIndex, cellIndex + 1);
                     }
                 } else if (e.key === 'Tab' && e.shiftKey) {
                     e.preventDefault();
-                    cell.blur(); // Shift+Tab을 누르면 이전 셀로 이동 또는 이전 행으로 이동
-                    const isFirstCell = (cellIndex === 2); // 2번째 셀이 첫 번째 수정 가능한 셀
+                    cell.blur();
+                    const isFirstCell = (cellIndex === 2);
                     if (isFirstCell) {
-                        moveToCell(rowIndex - 1, table.rows[0].cells.length - 1); // 이전 행의 마지막 셀로 이동
+                        moveToCell(rowIndex - 1, table.rows[0].cells.length - 1);
                     } else {
-                        moveToCell(rowIndex, cellIndex - 1); // 같은 행의 이전 셀로 이동
+                        moveToCell(rowIndex, cellIndex - 1);
                     }
                 }
             });
@@ -279,13 +300,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (targetCell) {
                     targetCell.contentEditable = true;
                     targetCell.focus();
-                    selectAllText(targetCell); // 이동된 셀 전체 블럭 설정
+                    selectAllText(targetCell);
                 }
             }
         }
     }
 
-    // select에 데이터 채우는 함수
+    function saveVectorData(fileName) {
+        const payload = {
+            file_name: fileName,
+            items: vectorData
+        };
+
+        fetch('/api/v1/va/save-vector', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+            .then(response => response.json())
+            .then(result => {
+                alert('Save successful.');
+            })
+            .catch(error => console.error('Error saving vector data:', error));
+    }
+
     function populateSelect(selectElement, items) {
         selectElement.innerHTML = '';
         items.forEach(item => {
