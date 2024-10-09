@@ -76,30 +76,60 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch(`/api/v1/va/vectorset-list?project_name=${project}&evt_version=${evtVersion}&domain_name=${domain}`)
                 .then(response => response.json())
                 .then(data => {
-                    populateTable(vectorSetTable, data.items, ['vector_name', 'owner', 'modified']);
+                    populateTable(vectorSetTable, groupByVectorNameAndOwner(data.items));
                 })
                 .catch(error => console.error('Error fetching vectorset list:', error));
         }
     }
 
-    // 테이블에 데이터 채우는 함수 (날짜 포맷팅 포함)
-    function populateTable(table, items, columns) {
-        table.innerHTML = '';
-        items.forEach(item => {
-            const row = document.createElement('tr');
-            columns.forEach(column => {
-                const cell = document.createElement('td');
-                
-                // modified 컬럼에 대해 날짜 형식 변경
-                if (column === 'modified') {
-                    const formattedDate = formatDate(item[column]);
-                    cell.textContent = formattedDate;
-                } else {
-                    cell.textContent = item[column];
-                }
+    // 벡터셋 데이터를 vector_name과 owner별로 그룹화하는 함수
+    function groupByVectorNameAndOwner(items) {
+        const groupedItems = {};
 
-                row.appendChild(cell);
+        items.forEach(item => {
+            const key = `${item.vector_name}_${item.owner}`;
+            if (!groupedItems[key]) {
+                groupedItems[key] = {
+                    vector_name: item.vector_name,
+                    owner: item.owner,
+                    modified: [item.modified] // 수정시간을 배열로 저장
+                };
+            } else {
+                groupedItems[key].modified.push(item.modified); // 같은 그룹에 수정시간 추가
+            }
+        });
+
+        return Object.values(groupedItems);
+    }
+
+    // 테이블에 데이터 채우는 함수 (그룹화된 항목과 수정시간 콤보박스 추가)
+    function populateTable(table, groupedItems) {
+        table.innerHTML = '';
+        groupedItems.forEach(item => {
+            const row = document.createElement('tr');
+
+            // Vectorset Name
+            const vectorNameCell = document.createElement('td');
+            vectorNameCell.textContent = item.vector_name;
+            row.appendChild(vectorNameCell);
+
+            // Owner
+            const ownerCell = document.createElement('td');
+            ownerCell.textContent = item.owner;
+            row.appendChild(ownerCell);
+
+            // Modified - 콤보박스로 표시
+            const modifiedCell = document.createElement('td');
+            const selectElement = document.createElement('select');
+            item.modified.forEach(dateString => {
+                const option = document.createElement('option');
+                option.value = dateString;
+                option.textContent = formatDate(dateString); // 날짜 형식 변환
+                selectElement.appendChild(option);
             });
+            modifiedCell.appendChild(selectElement);
+            row.appendChild(modifiedCell);
+
             table.appendChild(row);
         });
     }
