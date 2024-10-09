@@ -8,36 +8,36 @@ document.addEventListener('DOMContentLoaded', function() {
     const fileNameDisplay = document.getElementById('fileName');
     const refreshBtn = document.getElementById('refreshBtn');
 
-    let hierarchyData = {};  // 데이터를 전역 변수로 저장
+    let hierarchyData = {};
 
     // 초기 로딩 시 프로젝트 목록 로드
     fetch('/api/v1/va/hierarchy')
         .then(response => response.json())
         .then(data => {
-            hierarchyData = data.items;  // 데이터를 전역 변수에 저장
+            hierarchyData = data.items;
             populateSelect(projectSelect, Object.keys(hierarchyData));
-            updateEvtVersions();  // 프로젝트 선택 후 evt 버전 업데이트
+            updateEvtVersions();
         })
         .catch(error => console.error('Error fetching hierarchy:', error));
 
     // 프로젝트 변경 시 evt 버전 업데이트
     projectSelect.addEventListener('change', function() {
-        updateEvtVersions();  // evt 버전 업데이트 함수 호출
+        updateEvtVersions();
     });
 
     // evt 버전 변경 시 도메인 업데이트
     evtVersionSelect.addEventListener('change', function() {
-        updateDomains();  // 도메인 업데이트 함수 호출
+        updateDomains();
     });
 
     // 도메인 변경 시 벡터셋 목록 업데이트
     domainSelect.addEventListener('change', function() {
-        updateVectorsetList();  // 벡터셋 목록 업데이트 함수 호출
+        updateVectorsetList();
     });
 
     // 새로고침 버튼 클릭 시 벡터셋 목록 새로고침
     refreshBtn.addEventListener('click', function() {
-        updateVectorsetList();  // 벡터셋 목록을 새로고침
+        updateVectorsetList();
     });
 
     // evt 버전 업데이트 함수
@@ -46,10 +46,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (hierarchyData[project]) {
             const evtVersions = Object.keys(hierarchyData[project]);
             populateSelect(evtVersionSelect, evtVersions);
-            updateDomains();  // evt 버전 선택 후 도메인 업데이트
+            updateDomains();
         } else {
-            evtVersionSelect.innerHTML = '';  // 선택된 프로젝트가 없을 때는 evtVersion 비우기
-            domainSelect.innerHTML = '';  // 도메인도 비우기
+            evtVersionSelect.innerHTML = '';
+            domainSelect.innerHTML = '';
         }
     }
 
@@ -60,9 +60,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (hierarchyData[project] && hierarchyData[project][evtVersion]) {
             const domains = hierarchyData[project][evtVersion];
             populateSelect(domainSelect, domains);
-            updateVectorsetList();  // 도메인 선택 후 벡터셋 업데이트
+            updateVectorsetList();
         } else {
-            domainSelect.innerHTML = '';  // 도메인 비우기
+            domainSelect.innerHTML = '';
         }
     }
 
@@ -82,23 +82,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 테이블에 데이터 채우는 함수
+    // 테이블에 데이터 채우는 함수 (날짜 포맷팅 포함)
     function populateTable(table, items, columns) {
         table.innerHTML = '';
         items.forEach(item => {
             const row = document.createElement('tr');
             columns.forEach(column => {
                 const cell = document.createElement('td');
-                cell.textContent = item[column];
+                
+                // modified 컬럼에 대해 날짜 형식 변경
+                if (column === 'modified') {
+                    const formattedDate = formatDate(item[column]);
+                    cell.textContent = formattedDate;
+                } else {
+                    cell.textContent = item[column];
+                }
+
                 row.appendChild(cell);
             });
             table.appendChild(row);
         });
     }
 
+    // 날짜를 'YYYY.MM.DD. HH:MM:SS' 형식으로 변환하는 함수
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        
+        return `${year}.${month}.${day}. ${hours}:${minutes}:${seconds}`;
+    }
+
     // select에 데이터 채우는 함수
     function populateSelect(selectElement, items) {
-        selectElement.innerHTML = '';  // 기존 옵션 제거
+        selectElement.innerHTML = '';
         items.forEach(item => {
             const option = document.createElement('option');
             option.value = item;
