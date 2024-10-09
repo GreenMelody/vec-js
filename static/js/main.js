@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch(`/api/v1/va/vectorset-list?project_name=${project}&evt_version=${evtVersion}&domain_name=${domain}`)
                 .then(response => response.json())
                 .then(data => {
-                    populateTable(vectorSetTable, groupByVectorNameAndOwner(data.items)); // 데이터를 그룹화하여 전달
+                    populateTable(vectorSetTable, groupByVectorNameAndOwner(data.items));
                 })
                 .catch(error => console.error('Error fetching vectorset list:', error));
         }
@@ -95,6 +95,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        // modified와 fileNames 배열을 함께 정렬
+        Object.values(groupedItems).forEach(group => {
+            const combined = group.modified.map((date, index) => ({
+                date,
+                fileName: group.fileNames[index]
+            }));
+
+            combined.sort((a, b) => new Date(b.date) - new Date(a.date)); // 날짜 기준으로 내림차순 정렬
+
+            group.modified = combined.map(item => item.date); // 정렬된 modified
+            group.fileNames = combined.map(item => item.fileName); // 정렬된 fileNames
+        });
+
         groupedItemsMap = groupedItems; // 그룹화된 items 저장
         return Object.values(groupedItems);
     }
@@ -115,10 +128,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const modifiedCell = document.createElement('td');
             const selectElement = document.createElement('select');
-            item.modified.sort((a, b) => new Date(b) - new Date(a));
             item.modified.forEach((dateString, index) => {
                 const option = document.createElement('option');
-                option.value = item.fileNames[index]; // file_name을 option의 value로 설정
+                option.value = index; // 각 날짜의 index로 value를 설정
                 option.textContent = formatDate(dateString);
                 selectElement.appendChild(option);
             });
@@ -131,7 +143,8 @@ document.addEventListener('DOMContentLoaded', function() {
             loadButton.textContent = 'LOAD';
             loadButton.classList.add('btn', 'btn-primary', 'btn-sm');
             loadButton.addEventListener('click', function() {
-                const selectedFileName = selectElement.value; // file_name을 사용
+                const selectedIndex = selectElement.value; // 선택된 index 가져오기
+                const selectedFileName = item.fileNames[selectedIndex]; // index를 통해 file_name 참조
                 loadVectorData(selectedFileName);
             });
             loadButtonCell.appendChild(loadButton);
