@@ -208,6 +208,12 @@ document.addEventListener('DOMContentLoaded', function() {
             controlNameCell.addEventListener('blur', function() {
                 item.control_name = controlNameCell.textContent;
             });
+            controlNameCell.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    controlNameCell.blur(); // 엔터를 치면 수정 종료
+                }
+            });
             row.appendChild(controlNameCell);
 
             // Address (더블클릭으로 수정 가능)
@@ -216,6 +222,12 @@ document.addEventListener('DOMContentLoaded', function() {
             addressCell.contentEditable = true;
             addressCell.addEventListener('blur', function() {
                 item.address = addressCell.textContent;
+            });
+            addressCell.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addressCell.blur(); // 엔터를 치면 수정 종료
+                }
             });
             row.appendChild(addressCell);
 
@@ -226,11 +238,18 @@ document.addEventListener('DOMContentLoaded', function() {
             dataCell.addEventListener('blur', function() {
                 item.data = dataCell.textContent;
             });
+            dataCell.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    dataCell.blur(); // 엔터를 치면 수정 종료
+                }
+            });
             row.appendChild(dataCell);
 
             table.appendChild(row);
         });
     }
+
 
     // select에 데이터 채우는 함수
     function populateSelect(selectElement, items) {
