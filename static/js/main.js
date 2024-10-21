@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let hierarchyData = {};
     let groupedItemsMap = {};
 
+    // 초기 로딩 시 프로젝트 목록 로드
     fetch('/api/v1/va/hierarchy')
         .then(response => response.json())
         .then(data => {
@@ -54,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (currentFileName) {
-            saveVectorData(currentFileName);
+            uploadVectorFile(currentFileName);
         } else {
             alert('No file loaded.');
         }
@@ -67,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         populateSelect(saveAsProject, Object.keys(hierarchyData));
-        saveAsVectorset.value = ''; // 초기화
+        saveAsVectorset.value = '';
         saveAsModal.show();
     });
 
@@ -244,44 +245,56 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error loading vector data:', error));
     }
 
-    // 텍스트 전체 선택 함수
-    function selectAllText(element) {
-        const range = document.createRange();
-        range.selectNodeContents(element);
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
+    function uploadVectorFile(fileName) {
+        const payload = {
+            user_id: document.getElementById('userID').value,
+            file_name: fileName,
+            vectors: { items: vectorData },
+            project_name: projectSelect.value,
+            evt_version: evtVersionSelect.value,
+            domain_name: domainSelect.value,
+            vectorset_name: vectorDetails.textContent.split(' > ').pop()
+        };
+
+        fetch('/api/v1/va/upload-vector-file', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.message) {
+                alert('Save successful.');
+            } else {
+                alert('Error saving file: ' + result.error);
+            }
+        })
+        .catch(error => console.error('Error uploading vector file:', error));
     }
 
-    // Vector 데이터를 벡터 테이블에 채우는 함수 (더블클릭 시 수정 가능)
     function populateVectorTable(table, items) {
         table.innerHTML = '';
         items.forEach((item, rowIndex) => {
             const row = document.createElement('tr');
 
-            // Index
             const indexCell = document.createElement('td');
             indexCell.textContent = item.index;
             row.appendChild(indexCell);
 
-            // Vectorset
             const vectorsetCell = document.createElement('td');
             vectorsetCell.textContent = item.linked_vectorset.vectorset_name || item.control_name;
             row.appendChild(vectorsetCell);
 
-            // Control Name (더블클릭으로 수정 가능)
             const controlNameCell = document.createElement('td');
             controlNameCell.textContent = item.control_name;
             makeEditable(controlNameCell, item, 'control_name', rowIndex, 2);
             row.appendChild(controlNameCell);
 
-            // Address (더블클릭으로 수정 가능)
             const addressCell = document.createElement('td');
             addressCell.textContent = item.address;
             makeEditable(addressCell, item, 'address', rowIndex, 3);
             row.appendChild(addressCell);
 
-            // Data (더블클릭으로 수정 가능)
             const dataCell = document.createElement('td');
             dataCell.textContent = item.data;
             makeEditable(dataCell, item, 'data', rowIndex, 4);
@@ -290,7 +303,6 @@ document.addEventListener('DOMContentLoaded', function() {
             table.appendChild(row);
         });
 
-        // 셀을 더블클릭해서 수정할 수 있게 만드는 함수
         function makeEditable(cell, item, field, rowIndex, cellIndex) {
             cell.addEventListener('dblclick', function() {
                 cell.contentEditable = true;
@@ -330,7 +342,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // 특정 셀로 이동하여 수정 가능하게 설정하는 함수
         function moveToCell(rowIndex, cellIndex) {
             const rows = table.getElementsByTagName('tr');
             if (rows[rowIndex]) {
@@ -344,22 +355,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function saveVectorData(fileName) {
-        const payload = {
-            file_name: fileName,
-            items: vectorData
-        };
-
-        fetch('/api/v1/va/save-vector', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-            .then(response => response.json())
-            .then(result => {
-                alert('Save successful.');
-            })
-            .catch(error => console.error('Error saving vector data:', error));
+    function selectAllText(element) {
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
     }
 
     function populateSelect(selectElement, items) {
