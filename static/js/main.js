@@ -277,24 +277,33 @@ document.addEventListener('DOMContentLoaded', function() {
         items.forEach((item, rowIndex) => {
             const row = document.createElement('tr');
 
+            // Index
             const indexCell = document.createElement('td');
             indexCell.textContent = item.index;
             row.appendChild(indexCell);
 
+            // Vectorset: "linked"가 1일 때 linked_vectorset.vectorset_name을 사용
             const vectorsetCell = document.createElement('td');
-            vectorsetCell.textContent = item.linked_vectorset.vectorset_name || item.control_name;
+            if (item.linked === 1) {
+                vectorsetCell.textContent = item.linked_vectorset.vectorset_name;
+            } else {
+                vectorsetCell.textContent = '';
+            }
             row.appendChild(vectorsetCell);
 
+            // Control Name
             const controlNameCell = document.createElement('td');
             controlNameCell.textContent = item.control_name;
             makeEditable(controlNameCell, item, 'control_name', rowIndex, 2);
             row.appendChild(controlNameCell);
 
+            // Address
             const addressCell = document.createElement('td');
             addressCell.textContent = item.address;
             makeEditable(addressCell, item, 'address', rowIndex, 3);
             row.appendChild(addressCell);
 
+            // Data
             const dataCell = document.createElement('td');
             dataCell.textContent = item.data;
             makeEditable(dataCell, item, 'data', rowIndex, 4);
