@@ -437,29 +437,31 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Paste 버튼 클릭 시 데이터를 VectorTable에 추가 (선택된 행 뒤에 추가)
+    // Paste 버튼 클릭 시 데이터를 vectorData에 추가하고 테이블 다시 렌더링
     document.getElementById('pasteConfirmBtn').addEventListener('click', function () {
         const clipboardRows = Array.from(clipboardTable.getElementsByTagName('tr')); // 유사 배열을 배열로 변환
 
-        // 새로 삽입된 데이터 인덱스를 기준으로 선택된 위치에서 데이터 삽입
+        // 클립보드 데이터를 선택된 인덱스 위치에 삽입
         clipboardRows.forEach((clipboardRow, index) => {
-            const newRow = vectorTable.insertRow(targetRowIndex + index + 1); // 선택된 행 뒤에 삽입
+            const rowData = {
+                address: clipboardRow.cells[1].textContent || '', // 클립보드 두 번째 셀 (address)
+                control_name: clipboardRow.cells[0].textContent || '', // 클립보드 첫 번째 셀 (control_name)
+                data: clipboardRow.cells[2].textContent || '', // 클립보드 세 번째 셀 (data)
+                index: targetRowIndex + index + 1, // 삽입되는 인덱스는 선택된 행 이후
+                linked: 0, // 기본값 설정
+                linked_vectorset: { file_name: '', latest: 0, vectorset_name: '' } // 기본값 설정
+            };
 
-            // 새 인덱스는 선택된 행보다 하나 큰 값으로 설정
-            const indexCell = newRow.insertCell(0);
-            indexCell.textContent = targetRowIndex + index + 1; // 인덱스를 재설정
-
-            const vectorsetCell = newRow.insertCell(1);
-            vectorsetCell.textContent = ''; // 빈 값 (Vectorset)
-
-            Array.from(clipboardRow.getElementsByTagName('td')).forEach((clipboardCell, cellIndex) => {
-                const newCell = newRow.insertCell(cellIndex + 2); // 세 번째 셀부터 데이터 삽입
-                newCell.textContent = clipboardCell.textContent;
-            });
+            vectorData.splice(targetRowIndex + index + 1, 0, rowData); // vectorData 배열에 삽입
         });
 
-        // 새로 삽입된 행 뒤의 모든 행의 인덱스 업데이트
-        updateIndicesFrom(targetRowIndex + clipboardRows.length + 1);
+        // 삽입된 이후의 인덱스 값을 모두 다시 계산
+        for (let i = targetRowIndex + clipboardRows.length + 1; i < vectorData.length; i++) {
+            vectorData[i].index = i;
+        }
+
+        // vectorData를 다시 렌더링
+        populateVectorTable(vectorTable, vectorData);
 
         clipboardPasteModal.hide(); // 팝업 닫기
     });
