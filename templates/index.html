@@ -104,6 +104,27 @@
         </div>
     </div>
 
+    <!-- Clipboard Paste Modal -->
+    <div class="modal" tabindex="-1" id="clipboardPasteModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Clipboard Data</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered" id="clipboardTable">
+                        <!-- 클립보드 데이터가 여기에 표시됩니다 -->
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="pasteConfirmBtn">Paste</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Save As Dialog -->
     <div class="modal" tabindex="-1" id="saveAsModal">
       <div class="modal-dialog">

@@ -9,18 +9,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const refreshBtn = document.getElementById('refreshBtn');
     const saveBtn = document.getElementById('saveBtn');
     const saveAsBtn = document.getElementById('saveAsBtn'); 
-
     const saveAsModal = new bootstrap.Modal(document.getElementById('saveAsModal'));
     const saveAsProject = document.getElementById('saveAsProject');
     const saveAsEvt = document.getElementById('saveAsEvt');
     const saveAsDomain = document.getElementById('saveAsDomain');
     const saveAsVectorset = document.getElementById('saveAsVectorset');
     const saveAsConfirmBtn = document.getElementById('saveAsConfirmBtn');
-
+    const clipboardPasteModal = new bootstrap.Modal(document.getElementById('clipboardPasteModal'));
+    const clipboardTable = document.getElementById('clipboardTable');
     let currentFileName = '';
     let vectorData = [];
     let hierarchyData = {};
     let groupedItemsMap = {};
+    let targetRowIndex = null; // Ctrl+V 할 때 선택된 행의 인덱스
 
     // 초기 로딩 시 프로젝트 목록 로드
     fetch('/api/v1/va/hierarchy')
@@ -397,5 +398,78 @@ document.addEventListener('DOMContentLoaded', function() {
             const rowText = row.innerText.toLowerCase();
             row.style.display = rowText.includes(query) ? '' : 'none';
         });
+    }
+
+    // VectorTable에서 행 클릭 이벤트 감지
+    vectorTable.addEventListener('click', function (event) {
+        const row = event.target.closest('tr');
+        if (row) {
+            targetRowIndex = row.rowIndex - 1; // 선택된 행의 인덱스 저장
+        }
+    });
+
+    // Ctrl+V 이벤트 감지
+    document.addEventListener('paste', function (event) {
+        if (targetRowIndex !== null) { // 특정 행이 선택되었을 때만 작동
+            event.preventDefault();
+
+            // 클립보드 데이터 가져오기
+            const clipboardData = event.clipboardData.getData('text/plain');
+            const rows = clipboardData.split('\n').filter(row => row.trim() !== ''); // 행으로 분리
+            const tableData = rows.map(row => row.split('\t')); // 열을 탭으로 분리
+
+            // 테이블 클리어
+            clipboardTable.innerHTML = '';
+
+            // 클립보드 데이터 테이블에 표시
+            tableData.forEach(rowData => {
+                const row = document.createElement('tr');
+                rowData.forEach(cellData => {
+                    const cell = document.createElement('td');
+                    cell.textContent = cellData;
+                    row.appendChild(cell);
+                });
+                clipboardTable.appendChild(row);
+            });
+
+            // 팝업 다이얼로그 표시
+            clipboardPasteModal.show();
+        }
+    });
+
+    // Paste 버튼 클릭 시 데이터를 VectorTable에 추가 (선택된 행 뒤에 추가)
+    document.getElementById('pasteConfirmBtn').addEventListener('click', function () {
+        const clipboardRows = Array.from(clipboardTable.getElementsByTagName('tr')); // 유사 배열을 배열로 변환
+
+        // 새로 삽입된 데이터 인덱스를 기준으로 선택된 위치에서 데이터 삽입
+        clipboardRows.forEach((clipboardRow, index) => {
+            const newRow = vectorTable.insertRow(targetRowIndex + index + 1); // 선택된 행 뒤에 삽입
+
+            // 새 인덱스는 선택된 행보다 하나 큰 값으로 설정
+            const indexCell = newRow.insertCell(0);
+            indexCell.textContent = targetRowIndex + index + 1; // 인덱스를 재설정
+
+            const vectorsetCell = newRow.insertCell(1);
+            vectorsetCell.textContent = ''; // 빈 값 (Vectorset)
+
+            Array.from(clipboardRow.getElementsByTagName('td')).forEach((clipboardCell, cellIndex) => {
+                const newCell = newRow.insertCell(cellIndex + 2); // 세 번째 셀부터 데이터 삽입
+                newCell.textContent = clipboardCell.textContent;
+            });
+        });
+
+        // 새로 삽입된 행 뒤의 모든 행의 인덱스 업데이트
+        updateIndicesFrom(targetRowIndex + clipboardRows.length + 1);
+
+        clipboardPasteModal.hide(); // 팝업 닫기
+    });
+
+    // 인덱스 업데이트 함수
+    function updateIndicesFrom(startIndex) {
+        for (let i = startIndex; i < vectorTable.rows.length; i++) {
+            const row = vectorTable.rows[i];
+            const indexCell = row.cells[0];
+            indexCell.textContent = i; // 인덱스를 0부터 재배열
+        }
     }
 });
