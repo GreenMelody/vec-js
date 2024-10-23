@@ -418,19 +418,39 @@ document.addEventListener('DOMContentLoaded', function() {
             const rows = clipboardData.split('\n').filter(row => row.trim() !== ''); // 행으로 분리
             const tableData = rows.map(row => row.split('\t')); // 열을 탭으로 분리
 
+            // 유효성 검사: 1열 이하일 경우 알람 표시
+            if (tableData[0].length <= 1) {
+                alert('붙여넣을 데이터를 확인하세요.');
+                return;
+            }
+
             // 테이블 클리어
             clipboardTable.innerHTML = '';
 
-            // 클립보드 데이터 테이블에 표시
+            // 테이블 헤더 설정
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+
+            if (tableData[0].length >= 3) {
+                headerRow.innerHTML = '<th>Control Name</th><th>Address</th><th>Data</th>';
+            } else if (tableData[0].length === 2) {
+                headerRow.innerHTML = '<th>Address</th><th>Data</th>';
+            }
+            thead.appendChild(headerRow);
+            clipboardTable.appendChild(thead);
+
+            // 클립보드 데이터 테이블에 표시 (3열까지만 표시)
+            const tbody = document.createElement('tbody');
             tableData.forEach(rowData => {
                 const row = document.createElement('tr');
-                rowData.forEach(cellData => {
+                rowData.slice(0, 3).forEach((cellData, index) => {
                     const cell = document.createElement('td');
                     cell.textContent = cellData;
                     row.appendChild(cell);
                 });
-                clipboardTable.appendChild(row);
+                tbody.appendChild(row);
             });
+            clipboardTable.appendChild(tbody);
 
             // 팝업 다이얼로그 표시
             clipboardPasteModal.show();
@@ -439,18 +459,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Paste 버튼 클릭 시 데이터를 vectorData에 추가하고 테이블 다시 렌더링
     document.getElementById('pasteConfirmBtn').addEventListener('click', function () {
-        const clipboardRows = Array.from(clipboardTable.getElementsByTagName('tr')); // 유사 배열을 배열로 변환
+        const clipboardRows = Array.from(clipboardTable.getElementsByTagName('tbody')[0].getElementsByTagName('tr')); // tbody의 데이터만 가져옴
 
         // 클립보드 데이터를 선택된 인덱스 위치에 삽입
         clipboardRows.forEach((clipboardRow, index) => {
-            const rowData = {
-                address: clipboardRow.cells[1].textContent || '', // 클립보드 두 번째 셀 (address)
-                control_name: clipboardRow.cells[0].textContent || '', // 클립보드 첫 번째 셀 (control_name)
-                data: clipboardRow.cells[2].textContent || '', // 클립보드 세 번째 셀 (data)
+            const cellCount = clipboardRow.cells.length; // 각 행의 셀 수 확인
+
+            let rowData = {
                 index: targetRowIndex + index + 1, // 삽입되는 인덱스는 선택된 행 이후
                 linked: 0, // 기본값 설정
-                linked_vectorset: { file_name: '', latest: 0, vectorset_name: '' } // 기본값 설정
+                linked_vectorset: { file_name: '', latest: 0, vectorset_name: '' }, // 기본값 설정
+                control_name: '', // 기본적으로 빈값 설정
+                address: '',
+                data: ''
             };
+
+            // 셀이 2개인 경우 Control Name을 비우고 Address와 Data만 설정
+            if (cellCount === 2) {
+                rowData.address = clipboardRow.cells[0].textContent || ''; // 첫 번째 셀을 Address로 사용
+                rowData.data = clipboardRow.cells[1].textContent || '';    // 두 번째 셀을 Data로 사용
+            }
+            // 셀이 3개인 경우 Control Name, Address, Data 모두 설정
+            else if (cellCount === 3) {
+                rowData.control_name = clipboardRow.cells[0].textContent || ''; // 첫 번째 셀 (control_name)
+                rowData.address = clipboardRow.cells[1].textContent || '';      // 두 번째 셀 (address)
+                rowData.data = clipboardRow.cells[2].textContent || '';         // 세 번째 셀 (data)
+            }
 
             vectorData.splice(targetRowIndex + index + 1, 0, rowData); // vectorData 배열에 삽입
         });
