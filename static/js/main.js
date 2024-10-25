@@ -65,34 +65,55 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Save As 버튼 클릭 이벤트 수정
     saveAsBtn.addEventListener('click', function() {
         if (!vectorData || vectorData.length === 0) {
             alert('NO DATA TO SAVE');
             return;
         }
-
+    
+        // 현재 선택된 project, evt version, domain, vectorset 가져오기
+        const selectedProject = projectSelect.value;
+        const selectedEvtVersion = evtVersionSelect.value;
+        const selectedDomain = domainSelect.value;
+        const selectedVectorset = vectorDetails.textContent.split(' > ').pop();
+    
+        // 필드 초기화 및 현재 선택된 값 할당
         populateSelect(saveAsProject, Object.keys(hierarchyData));
-        saveAsVectorset.value = '';
+        saveAsProject.value = selectedProject;
+    
+        // evt version과 domain을 populate하고 초기값으로 선택
+        populateSelect(saveAsEvt, Object.keys(hierarchyData[selectedProject]));
+        saveAsEvt.value = selectedEvtVersion;
+    
+        populateSelect(saveAsDomain, hierarchyData[selectedProject][selectedEvtVersion]);
+        saveAsDomain.value = selectedDomain;
+    
+        saveAsVectorset.value = selectedVectorset || '';
+    
         saveAsModal.show();
     });
 
     saveAsProject.addEventListener('change', function() {
         const project = saveAsProject.value;
         populateSelect(saveAsEvt, Object.keys(hierarchyData[project]));
+        const evt = saveAsEvt.value;
+        populateSelect(saveAsDomain, hierarchyData[project][evt]);
     });
 
     saveAsEvt.addEventListener('change', function() {
+        console.log("evt changed")
         const project = saveAsProject.value;
         const evt = saveAsEvt.value;
         populateSelect(saveAsDomain, hierarchyData[project][evt]);
     });
 
     saveAsConfirmBtn.addEventListener('click', function() {
-        const newFileName = `${saveAsVectorset.value}.json`;
+        const newFileName = `${saveAsProject.value}_${saveAsEvt.value}_${saveAsDomain.value}_${saveAsVectorset.value}_.json`;
         const payload = {
             user_id: document.getElementById('userID').value,
             file_name: newFileName,
-            vectors: vectorData,
+            vectors: {items: vectorData},
             project_name: saveAsProject.value,
             evt_version: saveAsEvt.value,
             domain_name: saveAsDomain.value,
@@ -109,6 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (result.message) {
                 alert('File saved successfully.');
                 saveAsModal.hide();
+                updateVectorsetList();
             } else {
                 alert('Error saving file: ' + result.error);
             }
