@@ -78,15 +78,15 @@
                             <input type="text" id="searchVector" class="form-control" placeholder="Search Vectors...">
                         </div>
                         
-                        <div class="card-header d-flex justify-content-end align-items-center">
+                        <div class="sticky-top card-header d-flex justify-content-end align-items-center py-3">
                             <button id="openInNewWindowBtn" class="btn btn-secondary btn-sm mx-1">새창열기</button>
                             <button id="copyTableBtn" class="btn btn-secondary btn-sm mx-1">복사하기</button>
                             <button id="saveBtn" class="btn btn-primary btn-sm mx-1">Save</button>
                             <button id="saveAsBtn" class="btn btn-secondary btn-sm mx-1">Save As</button>
                         </div>
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
                             <table class="table table-hover">
-                                <thead class="table-light">
+                                <thead class="table-light sticky-top">
                                     <tr>
                                         <th>Index</th>
                                         <th>Vectorset</th>

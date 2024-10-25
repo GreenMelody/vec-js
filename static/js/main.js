@@ -626,28 +626,36 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 </style>
                 <body>
-                    <div class="container mt-4">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h3>Vector Table</h3>
-                            <button id="copyTableBtn" class="btn btn-secondary btn-sm">복사하기</button>
-                        </div>
-                        <p><strong>File Name: </strong>${fileName}</p>
-                        
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-light">
-                                        <tr>
-                                            <th>Index</th>
-                                            <th>Vectorset</th>
-                                            <th>Control Name</th>
-                                            <th>Address</th>
-                                            <th>Data</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="vectorList">
-                                        ${vectorTable.innerHTML}
-                                    </tbody>
-                            </table>
+                    <div class="container mt-4  mw-50">
+                        <div class="card shadow-sm">
+                            <div class="">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h3>Vector Table</h3>
+                                    <button id="copyTableBtn" class="btn btn-secondary btn-sm">복사하기</button>
+                                </div>
+                                <div class="card-header">
+                                    <strong>File Name: </strong>${fileName}
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="table-responsive"  style="max-height: 800px; overflow-y: auto;">
+                                    <table class="table table-hover">
+                                        <thead class="table-light sticky-top">
+                                                <tr>
+                                                    <th>Index</th>
+                                                    <th>Vectorset</th>
+                                                    <th>Control Name</th>
+                                                    <th>Address</th>
+                                                    <th>Data</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="vectorList">
+                                                ${vectorTable.innerHTML}
+                                            </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <script>
