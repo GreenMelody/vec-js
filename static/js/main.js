@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const saveAsConfirmBtn = document.getElementById('saveAsConfirmBtn');
     const clipboardPasteModal = new bootstrap.Modal(document.getElementById('clipboardPasteModal'));
     const clipboardTable = document.getElementById('clipboardTable');
+    const openInNewWindowBtn = document.getElementById('openInNewWindowBtn');
     let currentFileName = '';
     let vectorData = [];
     let hierarchyData = {};
@@ -580,4 +581,49 @@ document.addEventListener('DOMContentLoaded', function() {
         // vectorData를 새로운 배열로 교체
         vectorData = newVectorData;
     }
+
+    // 새창열기 버튼 클릭 이벤트 추가
+    openInNewWindowBtn.addEventListener('click', function() {
+        if (!vectorData || vectorData.length === 0){
+            alert("Please select vector first.")
+            return;
+        }
+        const fileName = fileNameDisplay.textContent;
+        const newWindow = window.open('', '_blank', 'width=800,height=600,left=200,top=100');
+        newWindow.document.write(`
+            <html>
+                <head>
+                    <title>Vector Table</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+                </head>
+                <style>
+                    .drag-handle {
+                        display: none;
+                    }
+                </style>
+                <body>
+                    <div class="container mt-4">
+                        <h3>Vector Table</h3>
+                        <p><strong>File Name: </strong>${fileName}</p>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                        <tr>
+                                            <th>Index</th>
+                                            <th>Vectorset</th>
+                                            <th>Control Name</th>
+                                            <th>Address</th>
+                                            <th>Data</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="vectorList">
+                                        ${vectorTable.innerHTML}
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </body>
+            </html>
+        `);
+    });
 });
