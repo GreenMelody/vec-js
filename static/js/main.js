@@ -362,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (e.key === 'Tab' && !e.shiftKey) {
                     e.preventDefault();
                     cell.blur();
-                    const isLastCell = (cellIndex === table.rows[rowIndex].cells.length - 1);
+                    const isLastCell = (cellIndex === table.rows[rowIndex].cells.length - 2);
                     if (isLastCell) {
                         moveToCell(rowIndex + 1, 2);
                     } else {
@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     cell.blur();
                     const isFirstCell = (cellIndex === 2);
                     if (isFirstCell) {
-                        moveToCell(rowIndex - 1, table.rows[0].cells.length - 1);
+                        moveToCell(rowIndex - 1, table.rows[0].cells.length - 2);
                     } else {
                         moveToCell(rowIndex, cellIndex - 1);
                     }
@@ -548,6 +548,7 @@ document.addEventListener('DOMContentLoaded', function() {
             draggedRow.classList.remove('dragging');
             draggedRow = null;
             updateVectorDataOrder();  // 드래그 앤 드롭 후 vectorData 업데이트
+            populateVectorTable(vectorTable, vectorData); // 테이블을 다시 렌더링하여 업데이트된 순서 반영
         });
 
         dragHandle.addEventListener('dragover', function(event) {
