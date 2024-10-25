@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let hierarchyData = {};
     let groupedItemsMap = {};
     let targetRowIndex = null; // Ctrl+V 할 때 선택된 행의 인덱스
+    let draggedRow = null;
 
     // 초기 로딩 시 프로젝트 목록 로드
     fetch('/api/v1/va/hierarchy')
@@ -310,6 +311,9 @@ document.addEventListener('DOMContentLoaded', function() {
             makeEditable(dataCell, item, 'data', rowIndex, 4);
             row.appendChild(dataCell);
 
+            // 드래그 핸들 추가 및 드래그 앤 드롭 이벤트 추가
+            addDragAndDropHandlers(row);
+
             table.appendChild(row);
         });
 
@@ -500,12 +504,79 @@ document.addEventListener('DOMContentLoaded', function() {
         clipboardPasteModal.hide(); // 팝업 닫기
     });
 
-    // 인덱스 업데이트 함수
-    function updateIndicesFrom(startIndex) {
-        for (let i = startIndex; i < vectorTable.rows.length; i++) {
-            const row = vectorTable.rows[i];
-            const indexCell = row.cells[0];
-            indexCell.textContent = i; // 인덱스를 0부터 재배열
-        }
+    // 각 테이블 행에 드래그 앤 드롭 관련 이벤트 추가
+    function addDragAndDropHandlers(row) {
+        const dragHandle = document.createElement('td');
+        dragHandle.innerHTML = '&#x2630;'; // 드래그 핸들 모양
+        dragHandle.classList.add('drag-handle');
+        row.appendChild(dragHandle);
+
+        row.setAttribute('draggable', true);
+        row.addEventListener('dragstart', function(event) {
+            draggedRow = row;
+            event.dataTransfer.effectAllowed = 'move';
+            row.classList.add('dragging');
+        });
+
+        row.addEventListener('dragend', function() {
+            draggedRow.classList.remove('dragging');
+            draggedRow = null;
+            updateVectorDataOrder();  // 드래그 앤 드롭 후 vectorData 업데이트
+        });
+
+        row.addEventListener('dragover', function(event) {
+            event.preventDefault();
+            const draggingRow = vectorTable.querySelector('.dragging');
+            if (draggingRow) {
+                const targetRow = event.target.closest('tr');
+                if (targetRow && targetRow !== draggedRow) {
+                    const bounding = targetRow.getBoundingClientRect();
+                    const offset = bounding.y + bounding.height / 2;
+                    if (event.clientY - offset > 0) {
+                        targetRow.parentNode.insertBefore(draggingRow, targetRow.nextSibling);
+                    } else {
+                        targetRow.parentNode.insertBefore(draggingRow, targetRow);
+                    }
+                }
+            }
+        });
+
+        row.addEventListener('drop', function() {
+            updateRowIndices();
+        });
+    }
+
+    // 테이블의 행 순서 변경 후 인덱스 업데이트
+    function updateRowIndices() {
+        const rows = vectorTable.querySelectorAll('tr');
+        rows.forEach((row, index) => {
+            row.cells[0].textContent = index;
+            vectorData[index].index = index;
+        });
+    }
+
+    // vectorData 업데이트 함수: 테이블의 순서를 반영하여 vectorData를 재정렬
+    function updateVectorDataOrder() {
+        const rows = vectorTable.querySelectorAll('tr');
+        const newVectorData = [];
+        
+        rows.forEach((row, index) => {
+            const controlName = row.cells[2].textContent;
+            const address = row.cells[3].textContent;
+            const data = row.cells[4].textContent;
+
+            // 새 vectorData 배열에 현재 행의 데이터를 업데이트
+            newVectorData.push({
+                index: index,
+                control_name: controlName,
+                address: address,
+                data: data,
+                linked: 0,  // 기본값 설정
+                linked_vectorset: { file_name: '', latest: 0, vectorset_name: '' } // 기본값 설정
+            });
+        });
+
+        // vectorData를 새로운 배열로 교체
+        vectorData = newVectorData;
     }
 });

@@ -1,3 +1,14 @@
 body {
-    font-family: Arial, sans-serif;
-  }
+  font-family: Arial, sans-serif;
+}
+
+.drag-handle {
+  cursor: grab;
+  text-align: center;
+  padding: 0 10px;
+}
+
+.dragging {
+  opacity: 0.5;
+  background-color: lightpink;
+}
