@@ -269,6 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(result => {
             if (result.message) {
                 alert('Save successful.');
+                updateVectorsetList();
             } else {
                 alert('Error saving file: ' + result.error);
             }
