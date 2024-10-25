@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const clipboardPasteModal = new bootstrap.Modal(document.getElementById('clipboardPasteModal'));
     const clipboardTable = document.getElementById('clipboardTable');
     const openInNewWindowBtn = document.getElementById('openInNewWindowBtn');
+    const copyTableBtn = document.getElementById('copyTableBtn');
     let currentFileName = '';
     let vectorData = [];
     let hierarchyData = {};
@@ -625,5 +626,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 </body>
             </html>
         `);
+    });
+
+    // 복사하기 버튼 클릭 이벤트 추가
+    copyTableBtn.addEventListener('click', function() {
+        const rows = Array.from(vectorTable.querySelectorAll('tr'));
+        let clipboardContent = '';
+
+        rows.forEach(row => {
+            const address = row.cells[3].textContent.trim();  // Address 열
+            const data = row.cells[4].textContent.trim();     // Data 열
+            clipboardContent += `${address}\t${data}\n`;      // 탭으로 구분
+        });
+
+        // 클립보드에 복사
+        navigator.clipboard.writeText(clipboardContent).then(() => {
+            alert('Address와 Data가 클립보드에 복사되었습니다.');
+        }).catch(err => {
+            console.error('클립보드 복사 중 오류 발생:', err);
+        });
     });
 });
