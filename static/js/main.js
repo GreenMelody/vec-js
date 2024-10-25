@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let groupedItemsMap = {};
     let targetRowIndex = null; // Ctrl+V 할 때 선택된 행의 인덱스
     let draggedRow = null;
+    let isPasteModalOpen = false;
 
     // 초기 로딩 시 프로젝트 목록 로드
     fetch('/api/v1/va/hierarchy')
@@ -102,7 +103,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     saveAsEvt.addEventListener('change', function() {
-        console.log("evt changed")
         const project = saveAsProject.value;
         const evt = saveAsEvt.value;
         populateSelect(saveAsDomain, hierarchyData[project][evt]);
@@ -437,8 +437,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // document의 다른 부분 클릭 시 targetRowIndex 초기화 (붙여넣기 팝업이 열리지 않았을 때만)
+    document.addEventListener('click', function(event) {
+        const isClickInsideTable = vectorTable.contains(event.target);
+
+        // 테이블 외부를 클릭하고 붙여넣기 팝업이 열리지 않은 경우에만 targetRowIndex를 초기화
+        if (!isClickInsideTable && !isPasteModalOpen) {
+            targetRowIndex = null;
+        }
+    }, true);
+
     // Ctrl+V 이벤트 감지
     document.addEventListener('paste', function (event) {
+        isPasteModalOpen = true;
         if (targetRowIndex !== null) { // 특정 행이 선택되었을 때만 작동
             event.preventDefault();
 
@@ -527,6 +538,12 @@ document.addEventListener('DOMContentLoaded', function() {
         populateVectorTable(vectorTable, vectorData);
 
         clipboardPasteModal.hide(); // 팝업 닫기
+    });
+
+    // 붙여넣기 완료 후 상태 플래그 해제
+    clipboardPasteModal._element.addEventListener('hidden.bs.modal', function () {
+        targetRowIndex = null;
+        isPasteModalOpen = false;
     });
 
     // 각 테이블 행에 드래그 앤 드롭 관련 이벤트 추가
