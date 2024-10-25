@@ -604,8 +604,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 </style>
                 <body>
                     <div class="container mt-4">
-                        <h3>Vector Table</h3>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h3>Vector Table</h3>
+                            <button id="copyTableBtn" class="btn btn-secondary btn-sm">복사하기</button>
+                        </div>
                         <p><strong>File Name: </strong>${fileName}</p>
+                        
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead class="table-light">
@@ -623,6 +627,24 @@ document.addEventListener('DOMContentLoaded', function() {
                             </table>
                         </div>
                     </div>
+                    <script>
+                        document.getElementById('copyTableBtn').addEventListener('click', function() {
+                            const rows = Array.from(document.getElementById('vectorList').querySelectorAll('tr'));
+                            let clipboardContent = '';
+
+                            rows.forEach(row => {
+                                const address = row.cells[3].textContent.trim();  // Address 열
+                                const data = row.cells[4].textContent.trim();     // Data 열
+                                clipboardContent += \`\${address}\t\${data}\n\`;      // 탭으로 구분
+                            });
+
+                            navigator.clipboard.writeText(clipboardContent).then(() => {
+                                alert('Address와 Data가 클립보드에 복사되었습니다.');
+                            }).catch(err => {
+                                console.error('클립보드 복사 중 오류 발생:', err);
+                            });
+                        });
+                    </script>
                 </body>
             </html>
         `);
