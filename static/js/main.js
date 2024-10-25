@@ -511,20 +511,21 @@ document.addEventListener('DOMContentLoaded', function() {
         dragHandle.classList.add('drag-handle');
         row.appendChild(dragHandle);
 
-        row.setAttribute('draggable', true);
-        row.addEventListener('dragstart', function(event) {
+        // dragHandle 셀에만 드래그 이벤트 연결
+        dragHandle.setAttribute('draggable', true);
+        dragHandle.addEventListener('dragstart', function(event) {
             draggedRow = row;
             event.dataTransfer.effectAllowed = 'move';
             row.classList.add('dragging');
         });
 
-        row.addEventListener('dragend', function() {
+        dragHandle.addEventListener('dragend', function() {
             draggedRow.classList.remove('dragging');
             draggedRow = null;
             updateVectorDataOrder();  // 드래그 앤 드롭 후 vectorData 업데이트
         });
 
-        row.addEventListener('dragover', function(event) {
+        dragHandle.addEventListener('dragover', function(event) {
             event.preventDefault();
             const draggingRow = vectorTable.querySelector('.dragging');
             if (draggingRow) {
@@ -541,7 +542,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        row.addEventListener('drop', function() {
+        dragHandle.addEventListener('drop', function() {
             updateRowIndices();
         });
     }
