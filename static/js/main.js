@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentFileName = '';
     let vectorData = [];
     let hierarchyData = {};
-    let groupedItemsMap = {};
     let targetRowIndex = null; // Ctrl+V 할 때 선택된 행의 인덱스
     let draggedRow = null;
     let isPasteModalOpen = false;
@@ -198,7 +197,6 @@ document.addEventListener('DOMContentLoaded', function() {
             group.fileNames = combined.map(item => item.fileName);
         });
 
-        groupedItemsMap = groupedItems;
         return Object.values(groupedItems);
     }
 
