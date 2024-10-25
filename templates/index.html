@@ -77,8 +77,13 @@
                         <div class="mb-3">
                             <input type="text" id="searchVector" class="form-control" placeholder="Search Vectors...">
                         </div>
-                        <button id="openInNewWindowBtn" class="btn btn-secondary btn-sm mb-3">새창열기</button>
-                        <button id="copyTableBtn" class="btn btn-secondary btn-sm mb-3">복사하기</button>
+                        
+                        <div class="card-header d-flex justify-content-end align-items-center">
+                            <button id="openInNewWindowBtn" class="btn btn-secondary btn-sm mx-1">새창열기</button>
+                            <button id="copyTableBtn" class="btn btn-secondary btn-sm mx-1">복사하기</button>
+                            <button id="saveBtn" class="btn btn-primary btn-sm mx-1">Save</button>
+                            <button id="saveAsBtn" class="btn btn-secondary btn-sm mx-1">Save As</button>
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead class="table-light">
@@ -95,11 +100,6 @@
                                     <!-- 벡터 목록이 여기 표시됩니다 -->
                                 </tbody>
                             </table>
-                        </div>
-                        <!-- Save 및 Save As 버튼 추가 -->
-                        <div>
-                            <button id="saveBtn" class="btn btn-primary btn-sm">Save</button>
-                            <button id="saveAsBtn" class="btn btn-secondary btn-sm">Save As</button>
                         </div>
                     </div>
                 </div>
