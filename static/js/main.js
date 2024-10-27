@@ -690,21 +690,43 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                     <script>
+                        function fallbackCopyToClipboard(text) {
+                            const textArea = document.createElement("textarea");
+                            textArea.value = text;
+                            textArea.style.position = "fixed";
+                            textArea.style.top = "0";
+                            textArea.style.left = "0";
+                            textArea.style.opacity = "0";
+                            document.body.appendChild(textArea);
+                            textArea.focus();
+                            textArea.select();
+                            try {
+                                document.execCommand('copy');
+                                alert('Address와 Data가 클립보드에 복사되었습니다.');
+                            } catch (err) {
+                                console.error('Fallback 복사 중 오류 발생:', err);
+                            }
+                            document.body.removeChild(textArea);
+                        }
+
                         document.getElementById('copyTableBtn').addEventListener('click', function() {
                             const rows = Array.from(document.getElementById('vectorList').querySelectorAll('tr'));
                             let clipboardContent = '';
-
                             rows.forEach(row => {
                                 const address = row.cells[3].textContent.trim();  // Address 열
                                 const data = row.cells[4].textContent.trim();     // Data 열
                                 clipboardContent += \`\${address}\t\${data}\n\`;      // 탭으로 구분
                             });
-
-                            navigator.clipboard.writeText(clipboardContent).then(() => {
-                                alert('Address와 Data가 클립보드에 복사되었습니다.');
-                            }).catch(err => {
-                                console.error('클립보드 복사 중 오류 발생:', err);
-                            });
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                                navigator.clipboard.writeText(clipboardContent).then(() => {
+                                    alert('Address와 Data가 클립보드에 복사되었습니다.');
+                                }).catch(err => {
+                                    console.error('클립보드 복사 중 오류 발생:', err);
+                                    fallbackCopyToClipboard(clipboardContent);
+                                });
+                            } else {
+                                fallbackCopyToClipboard(clipboardContent);
+                            }
                         });
                     </script>
                 </body>
@@ -724,10 +746,39 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // 클립보드에 복사
-        navigator.clipboard.writeText(clipboardContent).then(() => {
-            alert('Address와 Data가 클립보드에 복사되었습니다.');
-        }).catch(err => {
-            console.error('클립보드 복사 중 오류 발생:', err);
-        });
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(clipboardContent).then(() => {
+                alert('Address와 Data가 클립보드에 복사되었습니다.');
+            }).catch(err => {
+                console.error('클립보드 복사 중 오류 발생:', err);
+                fallbackCopyToClipboard(clipboardContent);
+            });
+        } else {
+            // Fallback 방법 실행
+            fallbackCopyToClipboard(clipboardContent);
+        }
     });
+
+    // Fallback 복사 함수
+    function fallbackCopyToClipboard(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        // 사용자에게 보이지 않게 함
+        textArea.style.position = "fixed";
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            document.execCommand('copy');
+            alert('Address와 Data가 클립보드에 복사되었습니다.');
+        } catch (err) {
+            console.error('Fallback 복사 중 오류 발생:', err);
+        }
+
+        document.body.removeChild(textArea);
+    }
 });
