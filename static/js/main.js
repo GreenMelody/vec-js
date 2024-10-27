@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let draggedRow = null;
     let isPasteModalOpen = false;
     let isInitialLoad = true;   //첫 로딩 체크
+    let selectedRow = null; // 선택된 행을 저장
 
     // 초기 로딩 시 프로젝트 목록 로드
     fetch('/api/v1/va/hierarchy')
@@ -442,11 +443,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // 선택된 행을 시각적으로 표시하는 함수
+    function selectRowByIndex(index) {
+        if (selectedRow) {
+            selectedRow.classList.remove('selected-row');
+        }
+
+        if (index !== null && vectorTable.rows[index]) {
+            selectedRow = vectorTable.rows[index];
+            selectedRow.classList.add('selected-row');
+        }
+    }
+
     // VectorTable에서 행 클릭 이벤트 감지
     vectorTable.addEventListener('click', function (event) {
         const row = event.target.closest('tr');
         if (row) {
             targetRowIndex = row.rowIndex - 1; // 선택된 행의 인덱스 저장
+            selectRowByIndex(targetRowIndex);
         }
     });
 
@@ -457,6 +471,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // 테이블 외부를 클릭하고 붙여넣기 팝업이 열리지 않은 경우에만 targetRowIndex를 초기화
         if (!isClickInsideTable && !isPasteModalOpen) {
             targetRowIndex = null;
+            if (selectedRow) {
+                selectedRow.classList.remove('selected-row');
+                selectedRow = null;
+            }
         }
     }, true);
 

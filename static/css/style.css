@@ -13,6 +13,10 @@ body {
   background-color: lightpink;
 }
 
+.selected-row {
+  background-color: #d1e7dd !important; /* 선택된 행에 녹색 배경 강조 */
+}
+
 .vectorset-column {
   max-width: 150px; /* 원하는 너비로 설정 */
   white-space: nowrap; /* 텍스트 줄바꿈 방지 */
