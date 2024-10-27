@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let targetRowIndex = null; // Ctrl+V 할 때 선택된 행의 인덱스
     let draggedRow = null;
     let isPasteModalOpen = false;
+    let isInitialLoad = true;   //첫 로딩 체크
 
     // 초기 로딩 시 프로젝트 목록 로드
     fetch('/api/v1/va/hierarchy')
@@ -32,7 +33,11 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             hierarchyData = data.items;
             populateSelect(projectSelect, Object.keys(hierarchyData));
+            if (isInitialLoad && Object.keys(hierarchyData).length > 1) {
+                projectSelect.selectedIndex = 3;
+            }
             updateEvtVersions();
+            isInitialLoad = false;
         })
         .catch(error => console.error('Error fetching hierarchy:', error));
 
@@ -141,6 +146,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const project = projectSelect.value;
         if (hierarchyData[project]) {
             populateSelect(evtVersionSelect, Object.keys(hierarchyData[project]));
+            if (isInitialLoad && Object.keys(hierarchyData[project]).length > 0) {
+                evtVersionSelect.selectedIndex = 1;
+            }
             updateDomains();
         }
     }
@@ -150,6 +158,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const evtVersion = evtVersionSelect.value;
         if (hierarchyData[project] && hierarchyData[project][evtVersion]) {
             populateSelect(domainSelect, hierarchyData[project][evtVersion]);
+            if (isInitialLoad && Object.keys(hierarchyData[project][evtVersion]).length > 0) {
+                domainSelect.selectedIndex = 3;
+            }
             updateVectorsetList();
         }
     }
@@ -207,6 +218,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const vectorNameCell = document.createElement('td');
             vectorNameCell.textContent = item.vector_name;
+            vectorNameCell.classList.add('vectorset-column');
+            vectorNameCell.setAttribute('title', item.vector_name);
             row.appendChild(vectorNameCell);
 
             const ownerCell = document.createElement('td');
@@ -311,6 +324,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const vectorsetCell = document.createElement('td');
             if (item.linked === 1) {
                 vectorsetCell.textContent = item.linked_vectorset.vectorset_name;
+                vectorsetCell.classList.add('vectorset-column');
+                vectorsetCell.setAttribute('title', item.linked_vectorset.vectorset_name);
             } else {
                 vectorsetCell.textContent = '';
             }
