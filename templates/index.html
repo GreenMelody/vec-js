@@ -30,8 +30,10 @@
                     <input type="file" id="fileUpload" class="form-control">
                 </div>
                 <div class="mb-3">
-                    <label for="userID" class="form-label">User ID</label>
-                    <input type="text" id="userID" class="form-control" placeholder="Enter your User ID">
+                    <p id="userID" class="form-control-plaintext">User ID : {{ user_id }}</p>
+                </div>
+                <div class="mb-3">
+                    <button id="logoutBtn" class="btn btn-outline-secondary">Logout</button>
                 </div>
             </div>
 

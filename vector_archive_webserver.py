@@ -1,9 +1,10 @@
 import os
 import sys
 import json
-from flask import Flask, request, jsonify, send_from_directory, render_template
+from flask import Flask, request, jsonify, send_from_directory, render_template, session, redirect, url_for, flash
 from flask_cors import CORS
 from datetime import timezone, datetime
+import hashlib
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 if 'log' not in sys.modules:
@@ -48,14 +49,59 @@ db = db.DB(log_level)
 db.db_name = va_rest_server_info['DB_NAME']
 
 app = Flask(__name__)
+app.secret_key = 'vector_archive'  # 보안을 위해 실제 배포 시 환경 변수로 설정하세요.
 CORS(app)
 
-# 사용자 요청에서 user_id를 가져오도록 수정
+def hash_password(password):
+    return hashlib.sha256(password.encode('utf-8')).hexdigest()
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    if 'user_id' in session:
+        return render_template('index.html', user_id=session['user_id'])
+    else:
+        return redirect(url_for('login'))
+
+# 로그인 라우트
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        user_id = request.form['user_id']
+        password = request.form['password']
+
+        hashed_password = hash_password(password)
+
+        # 데이터베이스에서 사용자 검증
+        query = f"SELECT * FROM user WHERE user_id = '{user_id}' AND password = '{hashed_password}'"
+        result = db.query(query)
+
+        if result and isinstance(result, list):
+            session['user_id'] = user_id
+            flash('Logged in successfully', 'success')
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid credentials, please try again.', 'danger')
+
+    return render_template('login.html')
+
+# 로그아웃 라우트
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.clear()  # 세션을 비워 로그아웃 처리
+    return redirect(url_for('login'))
+
+# 로그인 인증이 필요한 페이지 보호
+def login_required(f):
+    def wrapper(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('You must be logged in to access this page.', 'warning')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    wrapper.__name__ = f.__name__
+    return wrapper
 
 @app.route('/api/v1/va/hierarchy', methods=['GET'])
+@login_required
 def get_hierarchy():
     query = """
     SELECT p.project_name, e.evt_version, d.domain_name
