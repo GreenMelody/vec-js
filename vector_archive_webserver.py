@@ -195,10 +195,14 @@ def update_vector_list():
     # 클라이언트로부터 받은 데이터를 사용하여 벡터 데이터를 업데이트하는 로직을 구현합니다.
     return jsonify({"result": "success"})
 
+# save vectorfile
 @app.route('/api/v1/va/upload-vector-file', methods=['POST'])
 def upload_vector_file():
+    if 'user_id' not in session:  # 세션에 user_id가 없으면 접근 금지
+        return jsonify({"error": "Unauthorized"}), 403
+
     data = request.get_json()
-    user_id = data.get('user_id')
+    user_id = session['user_id']
     file_name = data.get('file_name')
     vectors = data.get('vectors')
     project_name = data.get('project_name')
@@ -259,7 +263,10 @@ def upload_vector_file():
 
 @app.route('/api/v1/va/upload-file', methods=['POST'])
 def upload_file():
-    user_id = request.args.get('user_id')
+    if 'user_id' not in session:  # 세션에 user_id가 없으면 접근 금지
+        return jsonify({"error": "Unauthorized"}), 403
+
+    user_id = session['user_id']
     # user_id가 user 테이블에 존재하는지 확인
     user_index = get_user_index(user_id)
     if not user_index:

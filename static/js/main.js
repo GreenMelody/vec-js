@@ -116,7 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
     saveAsConfirmBtn.addEventListener('click', function() {
         const newFileName = `${saveAsProject.value}_${saveAsEvt.value}_${saveAsDomain.value}_${saveAsVectorset.value}_.json`;
         const payload = {
-            user_id: document.getElementById('userID').value,
             file_name: newFileName,
             vectors: {items: vectorData},
             project_name: saveAsProject.value,
@@ -285,7 +284,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function uploadVectorFile(fileName) {
         const payload = {
-            user_id: document.getElementById('userID').value,
             file_name: fileName,
             vectors: { items: vectorData },
             project_name: projectSelect.value,
@@ -293,7 +291,6 @@ document.addEventListener('DOMContentLoaded', function() {
             domain_name: domainSelect.value,
             vectorset_name: vectorDetails.textContent.split(' > ').pop()
         };
-
         fetch('/api/v1/va/upload-vector-file', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
