@@ -335,8 +335,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Vectorset: "linked"가 1일 때 linked_vectorset.vectorset_name을 사용
             const vectorsetCell = document.createElement('td');
             if (item.linked === 1) {
+                let vectorsetName = item.linked_vectorset.vectorset_name.replace(/^🔗|📌/,'');
                 const latest_icon = item.linked_vectorset.latest === 1 ? '🔗' : '📌';
-                vectorsetCell.textContent = `${latest_icon}${item.linked_vectorset.vectorset_name}`;
+                vectorsetCell.textContent = `${latest_icon}${vectorsetName}`;
                 vectorsetCell.classList.add('vectorset-column');
                 vectorsetCell.setAttribute('title', item.linked_vectorset.vectorset_name);
                 vectorsetCell.setAttribute('data-file-name', item.linked_vectorset.file_name);
@@ -650,14 +651,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const newVectorData = [];
         
         rows.forEach((row, index) => {
-            const vectorsetName = row.cells[1].textContent;
+            const vectorsetName = row.cells[1].textContent.replace(/^🔗|📌/,'');
             const controlName = row.cells[2].textContent;
             const address = row.cells[3].textContent;
             const data = row.cells[4].textContent;
 
             const linked = vectorsetName ? 1 : 0;
             const fileName = row.cells[1].getAttribute('data-file-name') || '';
-            const latest = row.cells[1].getAttribute('data-latest') || 0;
+            const latest = parseInt(row.cells[1].getAttribute('data-latest')) || 0;
 
             // 새 vectorData 배열에 현재 행의 데이터를 업데이트
             newVectorData.push({
@@ -676,6 +677,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // vectorData를 새로운 배열로 교체
         vectorData = newVectorData;
+        console.log("vectorData",vectorData);
     }
 
     // 새창열기 버튼 클릭 이벤트 추가
