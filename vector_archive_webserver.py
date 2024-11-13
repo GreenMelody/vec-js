@@ -232,7 +232,7 @@ def upload_vector_file():
     modified_time = current_time.strftime('%Y-%m-%d %H:%M:%S')
 
     # GitHub에 파일 업로드
-    content = json.dumps(vectors, indent=4)
+    content = json.dumps(vectors, ensure_ascii=False, indent=4)
     
     try:
         file_path = f"{project_name}/{evt_version}/{domain_name}/{new_file_name}"
