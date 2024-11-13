@@ -677,7 +677,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // vectorData를 새로운 배열로 교체
         vectorData = newVectorData;
-        console.log("vectorData",vectorData);
     }
 
     // 새창열기 버튼 클릭 이벤트 추가

@@ -3,7 +3,7 @@ import sys
 import json
 from flask import Flask, request, jsonify, send_from_directory, render_template, session, redirect, url_for, flash
 from flask_cors import CORS
-from datetime import timezone, datetime
+from datetime import timezone, datetime, timedelta
 import hashlib
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
@@ -155,7 +155,7 @@ def get_vectorset_list():
             "domain_name": domain_name,
             "vector_name": file['vectorset_name'],
             "owner": file['owner'],
-            "modified": file['modified'].replace(tzinfo=timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+            "modified": file['modified'].replace(tzinfo=timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')
         }
         for file in result
     ]
@@ -220,7 +220,7 @@ def upload_vector_file():
         return jsonify({"error": "File name or vectors data is missing"}), 400
 
     # 현재 시각을 기반으로 타임스탬프 생성
-    current_time = datetime.now(timezone.utc)
+    current_time = datetime.now(timezone.utc) + timedelta(hours=9)
     timestamp = current_time.strftime('%Y%m%dT%H%M%S%f')[:-3]
 
     # 새로운 파일 이름 생성
