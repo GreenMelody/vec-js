@@ -338,6 +338,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 vectorsetCell.textContent = item.linked_vectorset.vectorset_name;
                 vectorsetCell.classList.add('vectorset-column');
                 vectorsetCell.setAttribute('title', item.linked_vectorset.vectorset_name);
+                vectorsetCell.setAttribute('data-file-name', item.linked_vectorset.file_name);
+                vectorsetCell.setAttribute('data-latest', item.linked_vectorset.latest);
             } else {
                 vectorsetCell.textContent = '';
             }
@@ -647,9 +649,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const newVectorData = [];
         
         rows.forEach((row, index) => {
+            const vectorsetName = row.cells[1].textContent;
             const controlName = row.cells[2].textContent;
             const address = row.cells[3].textContent;
             const data = row.cells[4].textContent;
+
+            const linked = vectorsetName ? 1 : 0;
+            const fileName = row.cells[1].getAttribute('data-file-name') || '';
+            const latest = row.cells[1].getAttribute('data-latest') || 0;
 
             // 새 vectorData 배열에 현재 행의 데이터를 업데이트
             newVectorData.push({
@@ -657,8 +664,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 control_name: controlName,
                 address: address,
                 data: data,
-                linked: 0,  // 기본값 설정
-                linked_vectorset: { file_name: '', latest: 0, vectorset_name: '' } // 기본값 설정
+                linked: linked,
+                linked_vectorset: {
+                    file_name: fileName,
+                    latest: latest,
+                    vectorset_name: vectorsetName
+                }
             });
         });
 
