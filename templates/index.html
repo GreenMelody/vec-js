@@ -13,6 +13,10 @@
         <div class="row g-4">
             <!-- 좌측 2 열 -->
             <div class="col-md-2">
+                <div class="mb-3 d-flex align-items-center">
+                    <p id="userID" class="form-control-plaintext mb-0">ID : {{ user_id }} </p>
+                    <button id="logoutBtn" class="btn btn-outline-secondary ms-auto">Logout</button>
+                </div>
                 <div class="mb-3">
                     <label for="projectName" class="form-label">Project Name</label>
                     <select id="projectName" class="form-select"></select>
@@ -28,12 +32,6 @@
                 <div class="mb-3">
                     <label for="fileUpload" class="form-label">File Upload</label>
                     <input type="file" id="fileUpload" class="form-control">
-                </div>
-                <div class="mb-3">
-                    <p id="userID" class="form-control-plaintext">User ID : {{ user_id }}</p>
-                </div>
-                <div class="mb-3">
-                    <button id="logoutBtn" class="btn btn-outline-secondary">Logout</button>
                 </div>
             </div>
 
