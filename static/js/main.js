@@ -335,7 +335,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Vectorset: "linked"가 1일 때 linked_vectorset.vectorset_name을 사용
             const vectorsetCell = document.createElement('td');
             if (item.linked === 1) {
-                vectorsetCell.textContent = item.linked_vectorset.vectorset_name;
+                const latest_icon = item.linked_vectorset.latest === 1 ? '🔗' : '📌';
+                vectorsetCell.textContent = `${latest_icon}${item.linked_vectorset.vectorset_name}`;
                 vectorsetCell.classList.add('vectorset-column');
                 vectorsetCell.setAttribute('title', item.linked_vectorset.vectorset_name);
                 vectorsetCell.setAttribute('data-file-name', item.linked_vectorset.file_name);
