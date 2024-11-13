@@ -209,6 +209,7 @@ def upload_vector_file():
     evt_version = data.get('evt_version')
     domain_name = data.get('domain_name')
     vectorset_name = data.get('vectorset_name')
+    commit_message = data.get('commit_message', "Default commit message")
 
     # user_id가 user 테이블에 존재하는지 확인
     user_index = get_user_index(user_id)
@@ -231,7 +232,6 @@ def upload_vector_file():
     modified_time = current_time.strftime('%Y-%m-%d %H:%M:%S')
 
     # GitHub에 파일 업로드
-    commit_message = f"Upload vector file : {new_file_name}"
     content = json.dumps(vectors, indent=4)
     
     try:
@@ -249,7 +249,7 @@ def upload_vector_file():
         evt_index = get_or_create_evt(evt_version, project_index)
         domain_index = get_or_create_domain(domain_name, evt_index)
         
-        file_index = save_file_info(new_file_name, file_path, vectorset_name, modified_time, project_index, evt_index, domain_index, user_index, response)
+        file_index = save_file_info(new_file_name, file_path, vectorset_name, modified_time, project_index, evt_index, domain_index, user_index, commit_message, response)
         
         # 파일 권한 설정
         save_file_permission(file_index, user_index)
@@ -407,13 +407,13 @@ def get_or_create_domain(domain_name, evt_index):
             return int(insert_result)
     return None
 
-def save_file_info(file_name, file_path, vectorset_name, modified_time, project_index, evt_index, domain_index, user_index, response):
+def save_file_info(file_name, file_path, vectorset_name, modified_time, project_index, evt_index, domain_index, user_index, commit_message, response):
     try:
         commit_id = response['commit']['sha']
         repo_url = response['commit']['url']
         sql = f"""
             INSERT INTO file (project_index, evt_index, domain_index, vectorset_name, file_name, file_path, branch, repo_url, commit_id, comment, modified, owner)
-            VALUES ({project_index}, {evt_index}, {domain_index}, '{vectorset_name}', '{file_name}', '{file_path}', '{repo_branch}', '{repo_url}', '{commit_id}', 'Initial commit from {file_name}', '{modified_time}', {user_index})
+            VALUES ({project_index}, {evt_index}, {domain_index}, '{vectorset_name}', '{file_name}', '{file_path}', '{repo_branch}', '{repo_url}', '{commit_id}', '{commit_message}', '{modified_time}', {user_index})
         """
         file_index = db.query(sql)
         if file_index.isdigit():

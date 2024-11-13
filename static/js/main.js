@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const clipboardTable = document.getElementById('clipboardTable');
     const openInNewWindowBtn = document.getElementById('openInNewWindowBtn');
     const copyTableBtn = document.getElementById('copyTableBtn');
+    const commitMessageModal = new bootstrap.Modal(document.getElementById('commitMessageModal'));
+    const commitMessageText = document.getElementById('commitMessageText');
     let currentFileName = '';
     let vectorData = [];
     let hierarchyData = {};
@@ -65,10 +67,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (currentFileName) {
-            uploadVectorFile(currentFileName);
+            document.getElementById('commitMessageText').value='';
+            commitMessageModal.show();
         } else {
             alert('No file loaded.');
         }
+    });
+
+    document.getElementById('commitSaveBtn').addEventListener('click', function() {
+        const commitMessage = commitMessageText.value.trim();
+        if (!commitMessage) {
+            alert('Please enter a commit message.');
+            return;
+        }
+        commitMessageModal.hide();
+        uploadVectorFile(currentFileName, commitMessage);
     });
 
     // Save As 버튼 클릭 이벤트 수정
@@ -282,14 +295,15 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error loading vector data:', error));
     }
 
-    function uploadVectorFile(fileName) {
+    function uploadVectorFile(fileName, commitMessage) {
         const payload = {
             file_name: fileName,
             vectors: { items: vectorData },
             project_name: projectSelect.value,
             evt_version: evtVersionSelect.value,
             domain_name: domainSelect.value,
-            vectorset_name: vectorDetails.textContent.split(' > ').pop()
+            vectorset_name: vectorDetails.textContent.split(' > ').pop(),
+            commit_message: commitMessage
         };
         fetch('/api/v1/va/upload-vector-file', {
             method: 'POST',
