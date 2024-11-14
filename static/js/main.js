@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let hierarchyData = {};
     let targetRowIndex = null; // Ctrl+V 할 때 선택된 행의 인덱스
     let draggedRow = null;
+    let dragStartIndex = null; // 드래그 시작 인덱스를 저장
     let isPasteModalOpen = false;
     let isInitialLoad = true;   //첫 로딩 체크
     let selectedRow = null; // 선택된 행을 저장
@@ -250,6 +251,20 @@ document.addEventListener('DOMContentLoaded', function() {
             modifiedCell.appendChild(selectElement);
             row.appendChild(modifiedCell);
 
+            row.draggable = true;
+            row.addEventListener('dragstart', (e) => {
+                const selectedIndex = selectElement.value;
+                const selectedFileName = item.fileNames[selectedIndex];
+                const selectedVectorsetName = item.vector_name;
+                const data = JSON.stringify({selectedFileName, selectedVectorsetName})
+                e.dataTransfer.setData('text/plain', data);
+                row.classList.add('dragging');
+            });
+
+            row.addEventListener('dragend', () => {
+                row.classList.remove('dragging');
+            });
+
             const loadButtonCell = document.createElement('td');
             const loadButton = document.createElement('button');
             loadButton.textContent = 'LOAD';
@@ -273,6 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // 2024-10-10T13:24:58 => 2024.10.10. 13:24:58
     function formatDate(dateString) {
         const date = new Date(dateString);
         const year = date.getFullYear();
@@ -490,6 +506,64 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    vectorTable.addEventListener('dragover', function (event) {
+        event.preventDefault();
+        const targetRow = event.target.closest('tr');
+        if (targetRow && targetRow !== draggedRow) {
+            const bounding = targetRow.getBoundingClientRect();
+            const offset = bounding.y + bounding.height / 2;
+            if (event.clientY - offset > 0) {
+                targetRow.classList.remove('drag-over-above');
+                targetRow.classList.add('drag-over-below');
+            } else {
+                targetRow.classList.remove('drag-over-below');
+                targetRow.classList.add('drag-over-above');
+            }
+        }
+    });
+
+    vectorTable.addEventListener('dragenter', function(event) {
+        const targetRow = event.target.closest('tr');
+        if (targetRow && targetRow !== draggedRow && !targetRow.classList.contains('drag-over')) {
+            targetRow.classList.add('drag-over');
+        }
+    });
+    
+    vectorTable.addEventListener('dragleave', function(event) {
+        const targetRow = event.target.closest('tr');
+        if (targetRow) {
+            targetRow.classList.remove('drag-over');
+        }
+    });
+    
+    vectorTable.addEventListener('drop', function (event) {
+        event.preventDefault();
+        const targetRow = event.target.closest('tr');
+        if (targetRow) {
+            const targetIndex = Array.from(vectorTable.rows).indexOf(targetRow); // 드롭 위치 인덱스
+    
+            // 드롭할 위치에 행을 이동
+            if (draggedRow && targetIndex !== -1 && dragStartIndex !== null) {
+                if (targetIndex < dragStartIndex) {
+                    vectorTable.insertBefore(draggedRow, targetRow);
+                } else {
+                    vectorTable.insertBefore(draggedRow, targetRow.nextSibling);
+                }
+    
+                // vectorData 배열 순서 업데이트
+                const movedData = vectorData.splice(dragStartIndex, 1)[0];
+                vectorData.splice(targetIndex, 0, movedData);
+    
+                // 인덱스 업데이트 및 테이블 다시 렌더링
+                updateRowIndices();
+                populateVectorTable(vectorTable, vectorData);
+            }
+    
+            // 드래그 스타일 제거
+            targetRow.classList.remove('drag-over-above', 'drag-over-below');
+        }
+    });
+
     // document의 다른 부분 클릭 시 targetRowIndex 초기화 (붙여넣기 팝업이 열리지 않았을 때만)
     document.addEventListener('click', function(event) {
         const isClickInsideTable = vectorTable.contains(event.target);
@@ -604,46 +678,26 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 각 테이블 행에 드래그 앤 드롭 관련 이벤트 추가
-    function addDragAndDropHandlers(row) {
+    function addDragAndDropHandlers(row, index) {
         const dragHandle = document.createElement('td');
         dragHandle.innerHTML = '&#x2630;'; // 드래그 핸들 모양
         dragHandle.classList.add('drag-handle');
         row.appendChild(dragHandle);
-
-        // dragHandle 셀에만 드래그 이벤트 연결
-        dragHandle.setAttribute('draggable', true);
-        dragHandle.addEventListener('dragstart', function(event) {
+    
+        row.draggable = true;
+    
+        row.addEventListener('dragstart', function (event) {
             draggedRow = row;
+            dragStartIndex = index; // 드래그 시작 인덱스 저장
             event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', 'internal_drag');
             row.classList.add('dragging');
         });
-
-        dragHandle.addEventListener('dragend', function() {
-            draggedRow.classList.remove('dragging');
+    
+        row.addEventListener('dragend', function () {
+            row.classList.remove('dragging');
             draggedRow = null;
-            updateVectorDataOrder();  // 드래그 앤 드롭 후 vectorData 업데이트
-            populateVectorTable(vectorTable, vectorData); // 테이블을 다시 렌더링하여 업데이트된 순서 반영
-        });
-
-        dragHandle.addEventListener('dragover', function(event) {
-            event.preventDefault();
-            const draggingRow = vectorTable.querySelector('.dragging');
-            if (draggingRow) {
-                const targetRow = event.target.closest('tr');
-                if (targetRow && targetRow !== draggedRow) {
-                    const bounding = targetRow.getBoundingClientRect();
-                    const offset = bounding.y + bounding.height / 2;
-                    if (event.clientY - offset > 0) {
-                        targetRow.parentNode.insertBefore(draggingRow, targetRow.nextSibling);
-                    } else {
-                        targetRow.parentNode.insertBefore(draggingRow, targetRow);
-                    }
-                }
-            }
-        });
-
-        dragHandle.addEventListener('drop', function() {
-            updateRowIndices();
+            dragStartIndex = null; // 드래그 시작 인덱스 초기화
         });
     }
 
@@ -660,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateVectorDataOrder() {
         const rows = vectorTable.querySelectorAll('tr');
         const newVectorData = [];
-        
+
         rows.forEach((row, index) => {
             const vectorsetName = row.cells[1].textContent.replace(/^🔗|📌/,'');
             const controlName = row.cells[2].textContent;

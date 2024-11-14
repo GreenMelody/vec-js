@@ -166,10 +166,8 @@ def get_vectorset_list():
 def get_vector_list():
     file_name = request.args.get('file_name')
     latest = request.args.get('latest', '0')
-    print(f"latest:{latest}")
 
     if latest == '1':
-        print(f"latest == 1")
         # get file owner
         query_owner_vectorset = f"""
         SELECT f.owner, f.vectorset_name
@@ -177,14 +175,13 @@ def get_vector_list():
         WHERE f.file_name = '{file_name}'
         """
         result_owner_vectorset = db.query(query_owner_vectorset)
-        print(f"result_owner_vectorset:{result_owner_vectorset}")
 
         if not result_owner_vectorset or isinstance(result_owner_vectorset, str) and result_owner_vectorset.startswith("FAIL"):
             return jsonify({"error": "Failed to retrieve owner and vectorset name from the database"}), 500
 
         owner = result_owner_vectorset[0]['owner']
         vectorset_name = result_owner_vectorset[0]['vectorset_name']
-        print(f"owner:{owner}  vectorset_name:{vectorset_name}")
+
         query_latest_vectorset = f"""
         SELECT f.file_name, f.file_path, f.repo_url, f.branch, f.modified
         FROM file f
@@ -199,7 +196,6 @@ def get_vector_list():
 
         # 최신 데이터의 file_path, repo_url, branch를 반환합니다.
         file_info = result_latest_vectorset[0]
-        print(f"file_info:{file_info}")
         file_name = file_info['file_name']
     else:
         if not file_name:
