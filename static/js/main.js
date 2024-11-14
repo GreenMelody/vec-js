@@ -610,11 +610,11 @@ document.addEventListener('DOMContentLoaded', function() {
         dragHandle.classList.add('drag-handle');
         row.appendChild(dragHandle);
 
-        // dragHandle 셀에만 드래그 이벤트 연결
         dragHandle.setAttribute('draggable', true);
         dragHandle.addEventListener('dragstart', function(event) {
             draggedRow = row;
             event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('drag-source', 'internal'); // 드래그 시작 시 소스 설정
             row.classList.add('dragging');
         });
 
@@ -642,8 +642,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        // Drop 이벤트에서 초기화 처리
         dragHandle.addEventListener('drop', function() {
             updateRowIndices();
+        });
+
+        // dragenter와 dragleave 이벤트를 사용하여 조건부 스타일링
+        row.addEventListener('dragenter', function(event) {
+            const source = event.dataTransfer.getData('drag-source');
+            if (source === 'internal') {
+                row.classList.add('drag-over'); // 드래그 오버 시 스타일 추가
+            }
+        });
+
+        row.addEventListener('dragleave', function(event) {
+            row.classList.remove('drag-over'); // 드래그 오버 해제 시 스타일 제거
         });
     }
 
