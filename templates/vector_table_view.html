@@ -39,17 +39,19 @@
     </div>
 
     <script>
-        // URL에서 file_name과 latest 값을 가져옵니다.
         const params = new URLSearchParams(window.location.search);
         const fileName = params.get('file_name');
         const latest = params.get('latest');
-
+    
         document.getElementById('fileName').textContent = fileName;
-
-        // 벡터 데이터를 가져와서 테이블에 표시하는 함수
+    
+        function openVectorTableInNewWindow(fileName, isLatest) {
+            window.open(`/vector_table_view?file_name=${encodeURIComponent(fileName)}&latest=${isLatest}`, '_blank', 'width=800,height=600,left=200,top=100');
+        }
+    
         function loadVectorData() {
             const url = `/api/v1/va/vector-list?file_name=${fileName}` + (latest ? `&latest=${latest}` : '');
-
+    
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -61,33 +63,44 @@
 
                     data.items.forEach((item, index) => {
                         const row = document.createElement('tr');
-
+    
+                        // 각 열에 데이터 추가
                         row.innerHTML = `
                             <td>${index}</td>
-                            <td>${item.linked ? (item.linked_vectorset.latest ? '🔗' : '📌') + item.linked_vectorset.vectorset_name : ''}</td>
+                            <td class="vectorset-column">${item.linked ? (item.linked_vectorset.latest ? '🔗' : '📌') + item.linked_vectorset.vectorset_name : ''}</td>
                             <td>${item.control_name}</td>
                             <td>${item.address}</td>
                             <td>${item.data}</td>
                         `;
                         tableBody.appendChild(row);
+    
+                        // vectorset 열 클릭 시 새 창 열기
+                        const vectorsetCell = row.querySelector('.vectorset-column');
+                        if (item.linked) {
+                            vectorsetCell.style.cursor = 'pointer';
+                            vectorsetCell.addEventListener('click', () => {
+                                const linkedFileName = item.linked_vectorset.file_name;
+                                const linkedLatest = item.linked_vectorset.latest;
+                                openVectorTableInNewWindow(linkedFileName, linkedLatest);
+                            });
+                        }
                     });
                 })
                 .catch(error => console.error('Error loading vector data:', error));
         }
-
+    
         loadVectorData();
-
-        // 복사하기 버튼 기능
+    
         document.getElementById('copyTableBtn').addEventListener('click', () => {
             const rows = Array.from(document.getElementById('vectorList').querySelectorAll('tr'));
             let clipboardContent = '';
-
+    
             rows.forEach(row => {
                 const address = row.cells[3].textContent.trim();
                 const data = row.cells[4].textContent.trim();
                 clipboardContent += `${address}\t${data}\n`;
             });
-
+    
             navigator.clipboard.writeText(clipboardContent).then(() => {
                 alert('Address와 Data가 클립보드에 복사되었습니다.');
             }).catch(err => {
