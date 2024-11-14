@@ -269,6 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loadButtonCell.appendChild(loadButton);
             row.appendChild(loadButtonCell);
 
+            addDragAndDropToVectorsetList(row, item);
             table.appendChild(row);
         });
     }
@@ -490,6 +491,47 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    vectorTable.addEventListener('drop', function(event) {
+        event.preventDefault();
+        const source = event.dataTransfer.getData('drag-source');
+        if (source === 'external') {
+            const data = JSON.parse(event.dataTransfer.getData('vectorset-data'));
+            
+            // 마우스 커서가 위치한 행을 감지
+            const targetRow = event.target.closest('tr');
+            const targetIndex = targetRow ? targetRow.rowIndex - 1 : vectorData.length; // targetRow가 없으면 마지막에 추가
+    
+            const newRow = {
+                index: targetIndex,
+                control_name: '',
+                address: '',
+                data: '',
+                linked: 1,
+                linked_vectorset: {
+                    file_name: data.fileName,
+                    latest: 0,
+                    vectorset_name: data.vectorsetName
+                }
+            };
+    
+            // vectorData 배열의 targetIndex 위치에 새 행 추가
+            vectorData.splice(targetIndex, 0, newRow);
+    
+            // 삽입된 이후 행의 인덱스 값을 업데이트
+            for (let i = targetIndex + 1; i < vectorData.length; i++) {
+                vectorData[i].index = i;
+            }
+    
+            // vectorData를 다시 렌더링
+            populateVectorTable(vectorTable, vectorData);
+        }
+    });
+
+    // vectorTable에서 외부 드래그 허용
+    vectorTable.addEventListener('dragover', function(event) {
+        event.preventDefault();
+    });
+
     // document의 다른 부분 클릭 시 targetRowIndex 초기화 (붙여넣기 팝업이 열리지 않았을 때만)
     document.addEventListener('click', function(event) {
         const isClickInsideTable = vectorTable.contains(event.target);
@@ -666,6 +708,33 @@ document.addEventListener('DOMContentLoaded', function() {
         rows.forEach((row, index) => {
             row.cells[0].textContent = index;
             vectorData[index].index = index;
+        });
+    }
+
+    function addDragAndDropToVectorsetList(row, item) {
+        row.setAttribute('draggable', true);
+        row.addEventListener('dragstart', function(event) {
+            const data = JSON.stringify({
+                fileName: item.fileNames[0],
+                vectorsetName: item.vector_name
+            });
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('drag-source', 'external');
+            event.dataTransfer.setData('vectorset-data', data);
+            row.classList.add('dragging');
+        });
+
+        row.addEventListener('dragend', function() {
+            row.classList.remove('dragging');
+        });
+    }
+
+    function populateVectorsetListTable() {
+        vectorsetList.forEach(item => {
+            const row = document.createElement('tr');
+            // 필요한 셀 생성 및 추가
+            addDragAndDropToVectorsetList(row, item);
+            vectorSetTable.appendChild(row);
         });
     }
 
