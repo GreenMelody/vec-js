@@ -34,3 +34,21 @@ body {
   border: 1px solid #ced4da; /* 테두리 추가 */
   padding: 2px;
 }
+
+/* CSS: context menu 스타일 */
+.context-menu {
+  position: absolute;
+  display: none;
+  background-color: white;
+  border: 1px solid #ccc;
+  z-index: 1000;
+  min-width: 120px;
+  padding: 5px;
+}
+.context-menu-item {
+  padding: 8px;
+  cursor: pointer;
+}
+.context-menu-item:hover {
+  background-color: #eee;
+}

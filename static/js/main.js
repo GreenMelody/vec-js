@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const copyTableBtn = document.getElementById('copyTableBtn');
     const commitMessageModal = new bootstrap.Modal(document.getElementById('commitMessageModal'));
     const commitMessageText = document.getElementById('commitMessageText');
+    const contextMenu = document.getElementById('contextMenu');
     let currentFileName = '';
     let vectorData = [];
     let hierarchyData = {};
@@ -29,6 +30,67 @@ document.addEventListener('DOMContentLoaded', function() {
     let isPasteModalOpen = false;
     let isInitialLoad = true;   //첫 로딩 체크
     let selectedRow = null; // 선택된 행을 저장
+    let currentRowIndex = null; // 우클릭한 행의 인덱스를 저장
+
+    vectorTable.addEventListener('contextmenu', function(event) {
+        event.preventDefault();
+        const row = event.target.closest('tr');
+        if (row) {
+            currentRowIndex = row.rowIndex - 1; // 행 인덱스 저장
+            const linked = vectorData[currentRowIndex].linked;
+            document.getElementById('switchLatest').style.display = linked === 1 ? 'block' : 'none';
+
+            // 위치 설정 및 표시
+            contextMenu.style.left = `${event.pageX}px`;
+            contextMenu.style.top = `${event.pageY}px`;
+            contextMenu.style.display = 'block';
+        }
+    });
+
+    // 'Add Row' 기능
+    document.getElementById('addRow').addEventListener('click', function() {
+        if (currentRowIndex !== null) {
+            const newRow = {
+                index: currentRowIndex + 1,
+                control_name: '',
+                address: '',
+                data: '',
+                linked: 0,
+                linked_vectorset: { file_name: '', latest: 0, vectorset_name: '' }
+            };
+            vectorData.splice(currentRowIndex, 0, newRow);
+            vectorData.forEach((row, index) => row.index = index); // 인덱스 업데이트
+            populateVectorTable(vectorTable, vectorData);
+        }
+        contextMenu.style.display = 'none';
+    });
+
+    // 'Delete Row' 기능
+    document.getElementById('deleteRow').addEventListener('click', function() {
+        if (currentRowIndex !== null) {
+            vectorData.splice(currentRowIndex, 1);
+            vectorData.forEach((row, index) => row.index = index); // 인덱스 업데이트
+            populateVectorTable(vectorTable, vectorData);
+        }
+        contextMenu.style.display = 'none';
+    });
+
+    // 'Switch Latest' 기능
+    document.getElementById('switchLatest').addEventListener('click', function() {
+        if (currentRowIndex !== null && vectorData[currentRowIndex].linked === 1) {
+            vectorData[currentRowIndex].linked_vectorset.latest = 
+                vectorData[currentRowIndex].linked_vectorset.latest === 1 ? 0 : 1;
+            populateVectorTable(vectorTable, vectorData);
+        }
+        contextMenu.style.display = 'none';
+    });
+
+    // 클릭 시 context menu 숨기기
+    document.addEventListener('click', function(event) {
+        if (!contextMenu.contains(event.target)) {
+            contextMenu.style.display = 'none';
+        }
+    });
 
     // 초기 로딩 시 프로젝트 목록 로드
     fetch('/api/v1/va/hierarchy')
