@@ -165,19 +165,60 @@ def get_vectorset_list():
 @app.route('/api/v1/va/vector-list', methods=['GET'])
 def get_vector_list():
     file_name = request.args.get('file_name')
+    latest = request.args.get('latest', '0')
+    print(f"latest:{latest}")
 
-    # 파일 정보 DB에서 확인
-    query = f"""
-    SELECT file_path, repo_url, branch FROM file
-    WHERE file_name = '{file_name}'
-    """
-    result = db.query(query)
+    if latest == '1':
+        print(f"latest == 1")
+        # get file owner
+        query_owner_vectorset = f"""
+        SELECT f.owner, f.vectorset_name
+        FROM file f
+        WHERE f.file_name = '{file_name}'
+        """
+        result_owner_vectorset = db.query(query_owner_vectorset)
+        print(f"result_owner_vectorset:{result_owner_vectorset}")
 
-    if not result or isinstance(result, str) and result.startswith("FAIL"):
-        return jsonify({"error": "Failed to retrieve file information from the database"}), 500
+        if not result_owner_vectorset or isinstance(result_owner_vectorset, str) and result_owner_vectorset.startswith("FAIL"):
+            return jsonify({"error": "Failed to retrieve owner and vectorset name from the database"}), 500
+
+        owner = result_owner_vectorset[0]['owner']
+        vectorset_name = result_owner_vectorset[0]['vectorset_name']
+        print(f"owner:{owner}  vectorset_name:{vectorset_name}")
+        query_latest_vectorset = f"""
+        SELECT f.file_name, f.file_path, f.repo_url, f.branch, f.modified
+        FROM file f
+        WHERE f.owner = {owner} AND f.vectorset_name = '{vectorset_name}'
+        ORDER BY f.modified DESC
+        LIMIT 1
+        """
+        result_latest_vectorset = db.query(query_latest_vectorset)
+
+        if not result_latest_vectorset or isinstance(result_latest_vectorset, str) and result_latest_vectorset.startswith("FAIL"):
+            return jsonify({"error": "Failed to retrieve latest vectorset data from the database"}), 500
+
+        # 최신 데이터의 file_path, repo_url, branch를 반환합니다.
+        file_info = result_latest_vectorset[0]
+        print(f"file_info:{file_info}")
+        file_name = file_info['file_name']
+    else:
+        if not file_name:
+            return jsonify({"error": "file_name or latest parameter is required"}), 400
+
+        # 파일 정보 DB에서 확인
+        query = f"""
+        SELECT file_path, repo_url, branch 
+        FROM file
+        WHERE file_name = '{file_name}'
+        """
+        result = db.query(query)
+
+        if not result or isinstance(result, str) and result.startswith("FAIL"):
+            return jsonify({"error": "Failed to retrieve file information from the database"}), 500
+
+        file_info = result[0]
 
     # GitHub에서 파일 가져오기
-    file_info = result[0]
     status_code, response = github.get_repo_content(repo_url, branch=file_info['branch'], file_path=file_info['file_path'])
 
     if status_code != 200:
@@ -185,10 +226,15 @@ def get_vector_list():
 
     try:
         vector_data = json.loads(response['content'])  # GitHub에서 받은 내용을 JSON으로 변환
-        return jsonify({"items": vector_data['items']})
+        return jsonify({"items": vector_data['items'], "file_name": file_name})
     except Exception as e:
         log.error(f"Error parsing GitHub file content: {e}")
         return jsonify({"error": "Failed to parse vector data"}), 500
+
+@app.route('/vector_table_view')
+def vector_table_view():
+    file_name = request.args.get('file_name')
+    return render_template('vector_table_view.html', file_name=file_name)
 
 @app.route('/api/v1/va/vector-list', methods=['PUT'])
 def update_vector_list():
