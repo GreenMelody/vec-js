@@ -786,8 +786,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function addDragAndDropToVectorsetList(row, item) {
         row.setAttribute('draggable', true);
         row.addEventListener('dragstart', function(event) {
+            const selectedElement = row.querySelector('select'); //Date Modified select index
+            const selectedIndex = selectedElement.value;
             const data = JSON.stringify({
-                fileName: item.fileNames[0],
+                fileName: item.fileNames[selectedIndex],
                 vectorsetName: item.vector_name
             });
             event.dataTransfer.effectAllowed = 'move';
