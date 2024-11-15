@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 'Add Row' 기능
-    document.getElementById('addRow').addEventListener('click', function() {
+    document.getElementById('insertRow').addEventListener('click', function() {
         if (currentRowIndex !== null) {
             const newRow = {
                 index: currentRowIndex + 1,
