@@ -22,6 +22,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const commitMessageModal = new bootstrap.Modal(document.getElementById('commitMessageModal'));
     const commitMessageText = document.getElementById('commitMessageText');
     const contextMenu = document.getElementById('contextMenu');
+    const commentBtn = document.getElementById('commentBtn');
+    const commentModal = new bootstrap.Modal(document.getElementById('commentModal'));
+    const commentText = document.getElementById('commentText');
     let currentFileName = '';
     let vectorData = [];
     let hierarchyData = {};
@@ -31,6 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let isInitialLoad = true;   //첫 로딩 체크
     let selectedRow = null; // 선택된 행을 저장
     let currentRowIndex = null; // 우클릭한 행의 인덱스를 저장
+    let currentComment = ''; // 현재 로드 된 vector의 comment
 
     vectorTable.addEventListener('contextmenu', function(event) {
         event.preventDefault();
@@ -173,6 +177,11 @@ document.addEventListener('DOMContentLoaded', function() {
         saveAsVectorset.value = selectedVectorset || '';
     
         saveAsModal.show();
+    });
+
+    commentBtn.addEventListener('click', function() {
+        commentText.value = currentComment || 'No comment available';
+        commentModal.show();
     });
 
     saveAsProject.addEventListener('change', function() {
@@ -352,6 +361,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 vectorData = data.items;
+                currentComment = data.comment;
                 populateVectorTable(vectorTable, vectorData);
                 currentFileName = fileName;
             })
