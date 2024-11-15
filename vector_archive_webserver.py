@@ -183,7 +183,7 @@ def get_vector_list():
         vectorset_name = result_owner_vectorset[0]['vectorset_name']
 
         query_latest_vectorset = f"""
-        SELECT f.file_name, f.file_path, f.repo_url, f.branch, f.modified
+        SELECT f.file_name, f.file_path, f.repo_url, f.branch, f.modified, f.comment
         FROM file f
         WHERE f.owner = {owner} AND f.vectorset_name = '{vectorset_name}'
         ORDER BY f.modified DESC
@@ -197,6 +197,7 @@ def get_vector_list():
         # 최신 데이터의 file_path, repo_url, branch를 반환합니다.
         file_info = result_latest_vectorset[0]
         file_name = file_info['file_name']
+        comment = file_info['comment']
     else:
         if not file_name:
             return jsonify({"error": "file_name or latest parameter is required"}), 400
