@@ -857,16 +857,82 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 복사하기 버튼 클릭 이벤트 추가
-    copyTableBtn.addEventListener('click', function() {
+    copyTableBtn.addEventListener('click', async function () {
         const rows = Array.from(vectorTable.querySelectorAll('tr'));
         let clipboardContent = '';
-
-        rows.forEach(row => {
-            const address = row.cells[3].textContent.trim();  // Address 열
-            const data = row.cells[4].textContent.trim();     // Data 열
-            clipboardContent += `${address}\t${data}\n`;      // 탭으로 구분
-        });
-
+    
+        // 이미 처리된 vectorset 참조를 추적
+        const processedFiles = new Set();
+    
+        // 재귀적으로 vectorset 데이터를 가져오는 함수
+        async function fetchVectorsetData(fileName, latest, depth = 0, maxDepth = 3) {
+            if (depth > maxDepth) {
+                console.warn(`Maximum depth reached for file: ${fileName}`);
+                return [];
+            }
+    
+            if (processedFiles.has(fileName)) {
+                console.warn(`Skipping already processed file: ${fileName}`);
+                return [];
+            }
+    
+            processedFiles.add(fileName);
+    
+            try {
+                const response = await fetch(`/api/v1/va/vector-list?file_name=${fileName}&latest=${latest ? '1' : '0'}`);
+                const result = await response.json();
+    
+                if (!result.items) return [];
+    
+                let allData = result.items.map(item => ({
+                    address: item.address || '',
+                    data: item.data || '',
+                    linked: item.linked,
+                    linked_vectorset: item.linked_vectorset,
+                }));
+    
+                // 참조된 vectorset이 있을 경우 재귀적으로 가져옴
+                for (const item of result.items) {
+                    if (item.linked && item.linked_vectorset?.file_name) {
+                        const linkedData = await fetchVectorsetData(
+                            item.linked_vectorset.file_name,
+                            item.linked_vectorset.latest,
+                            depth + 1,
+                            maxDepth
+                        );
+                        allData = allData.concat(linkedData);
+                    }
+                }
+    
+                return allData;
+            } catch (error) {
+                console.error(`Error fetching vectorset data for file: ${fileName}`, error);
+                return [];
+            }
+        }
+    
+        // 현재 테이블 데이터 및 참조 데이터 복사
+        for (const row of rows) {
+            const vectorsetCell = row.cells[1]; // Vectorset 열
+            const address = row.cells[3].textContent.trim(); // Address 열
+            const data = row.cells[4].textContent.trim();    // Data 열
+    
+            clipboardContent += `${address}\t${data}\n`; // 기본 테이블 데이터를 추가
+    
+            // Vectorset 참조 데이터 가져오기
+            if (vectorsetCell && vectorsetCell.textContent.trim()) {
+                const fileName = vectorsetCell.getAttribute('data-file-name');
+                const latest = vectorsetCell.getAttribute('data-latest') === '1';
+    
+                if (fileName) {
+                    const vectorsetData = await fetchVectorsetData(fileName, latest);
+                    vectorsetData.forEach(refItem => {
+                        clipboardContent += `${refItem.address}\t${refItem.data}\n`;
+                    });
+                }
+            }
+        }
+    
         // 클립보드에 복사
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(clipboardContent).then(() => {
@@ -876,7 +942,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 fallbackCopyToClipboard(clipboardContent);
             });
         } else {
-            // Fallback 방법 실행
             fallbackCopyToClipboard(clipboardContent);
         }
     });
