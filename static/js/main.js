@@ -563,12 +563,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    vectorTable.addEventListener('drop', function(event) {
+    vectorTable.addEventListener('drop', async function (event) {
         event.preventDefault();
+    
         const source = event.dataTransfer.getData('drag-source');
         if (source === 'external') {
             const data = JSON.parse(event.dataTransfer.getData('vectorset-data'));
-            
+            const fileName = data.fileName;
+            const latest = data.latest || 0; // latest 값 포함
+    
+            // 무한 루프 검사
+            const hasCycle = await checkCyclicDependency(fileName, latest);
+            if (hasCycle) {
+                alert(`Cannot add vectorset "${fileName}" due to a cyclic dependency.`);
+                return;
+            }
+    
             // 마우스 커서가 위치한 행을 감지
             const targetRow = event.target.closest('tr');
             const targetIndex = targetRow ? targetRow.rowIndex - 1 : vectorData.length; // targetRow가 없으면 마지막에 추가
@@ -580,8 +590,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 data: '',
                 linked: 1,
                 linked_vectorset: {
-                    file_name: data.fileName,
-                    latest: 0,
+                    file_name: fileName,
+                    latest: latest,
                     vectorset_name: data.vectorsetName
                 }
             };
@@ -598,6 +608,53 @@ document.addEventListener('DOMContentLoaded', function() {
             populateVectorTable(vectorTable, vectorData);
         }
     });
+
+    // 사이클 감지 함수
+    async function checkCyclicDependency(newFileName, isLatest = 0) {
+        const visited = new Set(); // 방문한 파일 추적
+        const stack = new Set();   // 현재 탐색 중인 파일 추적
+    
+        // DFS로 참조 경로를 탐색
+        async function dfs(fileName, latest) {
+            const key = `${fileName}-${latest}`; // latest 값 포함한 고유 키
+            if (stack.has(key)) {
+                // 이미 탐색 중인 파일이 다시 나타나면 사이클 존재
+                return true;
+            }
+            if (visited.has(key)) {
+                // 이미 탐색 완료된 파일은 다시 탐색하지 않음
+                return false;
+            }
+    
+            visited.add(key);
+            stack.add(key);
+    
+            try {
+                // API 호출 시 latest 값을 포함하여 참조 데이터를 가져옴
+                const response = await fetch(`/api/v1/va/vector-list?file_name=${fileName}&latest=${latest}`);
+                const result = await response.json();
+                const items = result.items || [];
+    
+                for (const item of items) {
+                    if (item.linked && item.linked_vectorset?.file_name) {
+                        const linkedFileName = item.linked_vectorset.file_name;
+                        const linkedLatest = item.linked_vectorset.latest;
+    
+                        if (await dfs(linkedFileName, linkedLatest)) {
+                            return true;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error(`Error checking cyclic dependency for file: ${fileName}`, error);
+            }
+    
+            stack.delete(key);
+            return false;
+        }
+    
+        return await dfs(newFileName, isLatest);
+    }
 
     // vectorTable에서 외부 드래그 허용
     vectorTable.addEventListener('dragover', function(event) {
