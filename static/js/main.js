@@ -884,16 +884,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
                 if (!result.items) return [];
     
-                let allData = result.items.map(item => ({
-                    address: item.address || '',
-                    data: item.data || '',
-                    linked: item.linked,
-                    linked_vectorset: item.linked_vectorset,
-                }));
+                let allData = [];
     
-                // 참조된 vectorset이 있을 경우 재귀적으로 가져옴
                 for (const item of result.items) {
                     if (item.linked && item.linked_vectorset?.file_name) {
+                        // 참조된 vectorset 데이터를 재귀적으로 가져옴
                         const linkedData = await fetchVectorsetData(
                             item.linked_vectorset.file_name,
                             item.linked_vectorset.latest,
@@ -901,6 +896,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             maxDepth
                         );
                         allData = allData.concat(linkedData);
+                    } else if (item.address && item.data) {
+                        // 참조된 데이터가 아닌 경우 Address와 Data만 추가
+                        allData.push({
+                            address: item.address,
+                            data: item.data,
+                        });
                     }
                 }
     
@@ -911,15 +912,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     
-        // 현재 테이블 데이터 및 참조 데이터 복사
+        // 테이블의 각 행 데이터 처리
         for (const row of rows) {
             const vectorsetCell = row.cells[1]; // Vectorset 열
-            const address = row.cells[3].textContent.trim(); // Address 열
-            const data = row.cells[4].textContent.trim();    // Data 열
+            const addressCell = row.cells[3];  // Address 열
+            const dataCell = row.cells[4];     // Data 열
     
-            clipboardContent += `${address}\t${data}\n`; // 기본 테이블 데이터를 추가
-    
-            // Vectorset 참조 데이터 가져오기
+            // Vectorset에 참조된 데이터가 있는 경우 처리
             if (vectorsetCell && vectorsetCell.textContent.trim()) {
                 const fileName = vectorsetCell.getAttribute('data-file-name');
                 const latest = vectorsetCell.getAttribute('data-latest') === '1';
@@ -930,6 +929,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         clipboardContent += `${refItem.address}\t${refItem.data}\n`;
                     });
                 }
+            } else {
+                // Vectorset 참조가 없는 경우 현재 행의 Address와 Data를 복사
+                const address = addressCell.textContent.trim();
+                const data = dataCell.textContent.trim();
+                clipboardContent += `${address}\t${data}\n`;
             }
         }
     
