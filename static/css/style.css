@@ -59,3 +59,44 @@ body {
   background-color: #d1e7dd; /* 연한 녹색 배경 */
   font-weight: bold; /* 진한 글씨 */
 }
+
+/* 하단 고정 레이아웃 스타일 */
+#compareLayout {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  z-index: 1050;
+  transition: height 0.3s;
+}
+
+#compareLayout.expanded {
+  height: 100px;
+}
+
+#dropArea1, #dropArea2 {
+  border-style: dashed;
+  border-color: #6c757d;
+  text-align: center;
+  padding: 10px;
+  min-height: 50px;
+  background-color: #f8f9fa;
+}
+
+/* 비교 테이블 하이라이트 */
+.table-warning {
+  background-color: #fff3cd;
+}
+
+/* 비교 테이블 스타일 */
+.table-compare tbody tr td {
+  vertical-align: middle;
+  text-align: center;
+  height: 50px; /* 행 높이를 일정하게 설정 */
+}
+
+/* 행 높이 동기화 */
+.table-compare tbody tr {
+  height: 50px;
+}
