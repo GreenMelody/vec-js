@@ -164,27 +164,41 @@ def get_vectorset_list():
 
 @app.route('/api/v1/va/vectorset-history', methods=['GET'])
 def get_vectorset_history():
-    vectorset_name = request.args.get('vectorset_name')
-    user_id = session.get('user_id')  # 세션에서 현재 사용자 ID 가져오기
-    if not vectorset_name:
-        return jsonify({"error": "Missing vectorset_name parameter"}), 400
+    file_name = request.args.get('file_name')
+    if not file_name:
+        return jsonify({"error": "Missing file_name parameter"}), 400
 
-    if not user_id:
-        return jsonify({"error": "Unauthorized"}), 403
+    # file_name을 기반으로 파일의 생성자를 찾는 쿼리
+    query_creator = f"""
+    SELECT f.vectorset_name, u.user_id AS owner
+    FROM file f
+    JOIN user u ON f.owner = u.user_index
+    WHERE f.file_name = '{file_name}'
+    LIMIT 1
+    """
+    creator_result = db.query(query_creator)
 
-    # 동일한 사용자 및 동일한 vectorset_name의 히스토리를 가져오는 쿼리
-    query = f"""
+    if not creator_result or isinstance(creator_result, str) and creator_result.startswith("FAIL"):
+        return jsonify({"error": "Failed to retrieve creator for the file"}), 500
+
+    if len(creator_result) == 0:
+        return jsonify({"error": "No data found for the specified file_name"}), 404
+
+    vectorset_name = creator_result[0]['vectorset_name']
+    owner = creator_result[0]['owner']
+
+    # 생성된 사용자 ID와 vectorset_name을 기반으로 히스토리 조회
+    query_history = f"""
     SELECT f.file_name, f.vectorset_name, u.user_id AS owner, f.modified, f.comment
     FROM file f
     JOIN user u ON f.owner = u.user_index
-    WHERE f.vectorset_name = '{vectorset_name}' AND u.user_id = '{user_id}'
+    WHERE f.vectorset_name = '{vectorset_name}' AND u.user_id = '{owner}'
     ORDER BY f.modified DESC
     """
-    result = db.query(query)
-    log.info(f"Query Result for vectorset history: {result}")
+    history_result = db.query(query_history)
 
-    if isinstance(result, str) and result.startswith("FAIL"):
-        return jsonify({"error": "Failed to query the database"}), 500
+    if not history_result or isinstance(history_result, str) and history_result.startswith("FAIL"):
+        return jsonify({"error": "Failed to query the database for history"}), 500
 
     # 결과를 정리하여 반환
     history = [
@@ -195,7 +209,7 @@ def get_vectorset_history():
             "modified": record['modified'].replace(tzinfo=timezone.utc).strftime('%Y-%m-%dT%H:%M:%S'),
             "comment": record['comment']
         }
-        for record in result
+        for record in history_result
     ]
 
     return jsonify({"history": history})

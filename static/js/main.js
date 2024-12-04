@@ -187,14 +187,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     commentBtn.addEventListener('click', function() {
-        const vectorsetName = vectorDetails.textContent.split(' > ').pop();
-        if (!vectorsetName) {
-            alert('No vectorset selected.');
+        const fileName = fileNameDisplay.textContent.trim();
+        if (!fileName) {
+            alert('No file loaded.');
             return;
         }
     
         // API 호출
-        fetch(`/api/v1/va/vectorset-history?vectorset_name=${encodeURIComponent(vectorsetName)}`)
+        fetch(`/api/v1/va/vectorset-history?file_name=${encodeURIComponent(fileName)}`)
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     `;
                     historyTableBody.appendChild(row);
                     // 현재 파일 이름과 비교하여 강조 표시
-                    if (record.file_name === currentFileName) {
+                    if (record.file_name === fileName) {
                         row.classList.add('current-version');
                     }
                 });
