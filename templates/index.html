@@ -85,7 +85,7 @@
                             <button id="saveAsBtn" class="btn btn-secondary btn-sm mx-1">Save As</button>
                             <button id="commentBtn" class="btn btn-secondary btn-sm mx-1">Comment</button>
                         </div>
-                        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                        <div class="table-responsive" style="max-height: 550px; overflow-y: auto;">
                             <table class="table table-hover">
                                 <thead class="table-light sticky-top">
                                     <tr>
@@ -147,14 +147,18 @@
     </div>
 
     <!-- 중앙 하단 고정 레이아웃 -->
-    <div id="compareLayout" class="fixed-bottom d-flex align-items-center px-3" style="height: 50px; background-color: #f8f9fa; border-top: 2px solid #ccc; transition: height 0.3s;">
-        <div id="dropArea1" class="flex-grow-1 d-flex justify-content-center align-items-center border border-dashed rounded me-3" style="height: 100%; min-height: 50px;">
-            <span class="text-muted">Drop VectorSet 1</span>
+    <div id="compareLayout" class="fixed-bottom d-flex align-items-center px-3 shadow-lg">
+        <div id="dropArea1" class="drop-area d-flex justify-content-center align-items-center rounded me-3">
+            <i class="bi bi-box-arrow-in-down"></i>
+            <span class="ms-2 text-muted">Drop VectorSet 1</span>
         </div>
-        <div id="dropArea2" class="flex-grow-1 d-flex justify-content-center align-items-center border border-dashed rounded me-3" style="height: 100%; min-height: 50px;">
-            <span class="text-muted">Drop VectorSet 2</span>
+        <div id="dropArea2" class="drop-area d-flex justify-content-center align-items-center rounded me-3">
+            <i class="bi bi-box-arrow-in-down"></i>
+            <span class="ms-2 text-muted">Drop VectorSet 2</span>
         </div>
-        <button id="compareBtn" class="btn btn-primary" disabled>Compare</button>
+        <button id="compareBtn" class="btn btn-primary" disabled>
+            <i class="bi bi-arrow-left-right"></i> Compare
+        </button>
     </div>
 
     <!-- 비교 결과 모달 -->
