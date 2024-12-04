@@ -162,6 +162,40 @@ def get_vectorset_list():
 
     return jsonify({"items": vectorsets})
 
+@app.route('/api/v1/va/vectorset-history', methods=['GET'])
+def get_vectorset_history():
+    vectorset_name = request.args.get('vectorset_name')
+    if not vectorset_name:
+        return jsonify({"error": "Missing vectorset_name parameter"}), 400
+
+    # 동일한 vectorset_name의 히스토리를 모두 가져오는 쿼리
+    query = f"""
+    SELECT f.file_name, f.vectorset_name, u.user_id AS owner, f.modified, f.comment
+    FROM file f
+    JOIN user u ON f.owner = u.user_index
+    WHERE f.vectorset_name = '{vectorset_name}'
+    ORDER BY f.modified DESC
+    """
+    result = db.query(query)
+    log.info(f"Query Result for vectorset history: {result}")
+
+    if isinstance(result, str) and result.startswith("FAIL"):
+        return jsonify({"error": "Failed to query the database"}), 500
+
+    # 결과를 정리하여 반환
+    history = [
+        {
+            "file_name": record['file_name'],
+            "vectorset_name": record['vectorset_name'],
+            "owner": record['owner'],
+            "modified": record['modified'].replace(tzinfo=timezone.utc).strftime('%Y-%m-%dT%H:%M:%S'),
+            "comment": record['comment']
+        }
+        for record in result
+    ]
+
+    return jsonify({"history": history})
+
 @app.route('/api/v1/va/vector-list', methods=['GET'])
 def get_vector_list():
     file_name = request.args.get('file_name')

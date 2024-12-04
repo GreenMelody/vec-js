@@ -118,14 +118,26 @@
 
     <!-- Comment Modal -->
     <div class="modal" tabindex="-1" id="commentModal">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">File Comment</h5>
+                    <h5 class="modal-title">Vectorset History</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <textarea id="commentText" class="form-control" rows="4" readonly></textarea>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Vectorset</th>
+                                <th>Owner</th>
+                                <th>Date Modified</th>
+                                <th>Comment</th>
+                            </tr>
+                        </thead>
+                        <tbody id="commentHistoryTableBody">
+                            <!-- 히스토리 데이터가 여기에 추가됩니다 -->
+                        </tbody>
+                    </table>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

@@ -180,8 +180,39 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     commentBtn.addEventListener('click', function() {
-        commentText.value = currentComment || 'No comment available';
-        commentModal.show();
+        const vectorsetName = vectorDetails.textContent.split(' > ').pop();
+        if (!vectorsetName) {
+            alert('No vectorset selected.');
+            return;
+        }
+    
+        // API 호출
+        fetch(`/api/v1/va/vectorset-history?vectorset_name=${encodeURIComponent(vectorsetName)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(`Error fetching history: ${data.error}`);
+                    return;
+                }
+    
+                // 히스토리를 테이블로 표시
+                const historyTableBody = document.getElementById('commentHistoryTableBody');
+                historyTableBody.innerHTML = ''; // 기존 내용 초기화
+    
+                data.history.forEach(record => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${record.vectorset_name}</td>
+                        <td>${record.owner}</td>
+                        <td>${record.modified}</td>
+                        <td>${record.comment || 'No comment'}</td>
+                    `;
+                    historyTableBody.appendChild(row);
+                });
+    
+                commentModal.show();
+            })
+            .catch(error => console.error('Error fetching vectorset history:', error));
     });
 
     saveAsProject.addEventListener('change', function() {
