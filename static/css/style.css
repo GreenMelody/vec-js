@@ -45,10 +45,17 @@ body {
   min-width: 120px;
   padding: 5px;
 }
+
 .context-menu-item {
   padding: 8px;
   cursor: pointer;
 }
+
 .context-menu-item:hover {
   background-color: #eee;
+}
+
+.current-version {
+  background-color: #d1e7dd; /* 연한 녹색 배경 */
+  font-weight: bold; /* 진한 글씨 */
 }

@@ -204,12 +204,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     row.innerHTML = `
                         <td>${record.vectorset_name}</td>
                         <td>${record.owner}</td>
-                        <td>${record.modified}</td>
+                        <td>${formatDate(record.modified)}</td>
                         <td>${record.comment || 'No comment'}</td>
                     `;
                     historyTableBody.appendChild(row);
+                    // 현재 파일 이름과 비교하여 강조 표시
+                    if (record.file_name === currentFileName) {
+                        row.classList.add('current-version');
+                    }
                 });
-    
                 commentModal.show();
             })
             .catch(error => console.error('Error fetching vectorset history:', error));
