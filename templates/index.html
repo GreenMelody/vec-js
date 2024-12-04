@@ -160,43 +160,46 @@
     <!-- 비교 결과 모달 -->
     <div class="modal fade" id="compareModal" tabindex="-1" aria-labelledby="compareModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl">
-            <div class="modal-content" style="height: 80vh;">
+            <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="compareModalLabel">Compare Results</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body d-flex">
-                    <!-- 좌측 비교 테이블 -->
-                    <div class="table-responsive flex-grow-1 me-2">
-                        <h6 class="text-center" id="leftFileName"></h6>
-                        <table class="table table-bordered table-compare">
-                            <thead>
-                                <tr>
-                                    <th>Index</th>
-                                    <th>Vectorset</th>
-                                    <th>Control Name</th>
-                                    <th>Address</th>
-                                    <th>Data</th>
-                                </tr>
-                            </thead>
-                            <tbody id="compareTableLeft"></tbody>
-                        </table>
-                    </div>
-                    <!-- 우측 비교 테이블 -->
-                    <div class="table-responsive flex-grow-1 ms-2">
-                        <h6 class="text-center" id="rightFileName"></h6>
-                        <table class="table table-bordered table-compare">
-                            <thead>
-                                <tr>
-                                    <th>Index</th>
-                                    <th>Vectorset</th>
-                                    <th>Control Name</th>
-                                    <th>Address</th>
-                                    <th>Data</th>
-                                </tr>
-                            </thead>
-                            <tbody id="compareTableRight"></tbody>
-                        </table>
+                <div class="modal-body">
+                    <!-- 테이블 두 개를 감싸는 div -->
+                    <div class="compare-tables-wrapper d-flex flex-grow-1" style="overflow-y: auto;">
+                        <!-- 좌측 비교 테이블 -->
+                        <div class="table-container flex-grow-1 me-2">
+                            <h6 class="text-center" id="leftFileName"></h6>
+                            <table class="table table-bordered table-compare">
+                                <thead>
+                                    <tr>
+                                        <th>Index</th>
+                                        <th>Vectorset</th>
+                                        <th>Control Name</th>
+                                        <th>Address</th>
+                                        <th>Data</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="compareTableLeft"></tbody>
+                            </table>
+                        </div>
+                        <!-- 우측 비교 테이블 -->
+                        <div class="table-container flex-grow-1 ms-2">
+                            <h6 class="text-center" id="rightFileName"></h6>
+                            <table class="table table-bordered table-compare">
+                                <thead>
+                                    <tr>
+                                        <th>Index</th>
+                                        <th>Vectorset</th>
+                                        <th>Control Name</th>
+                                        <th>Address</th>
+                                        <th>Data</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="compareTableRight"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -205,7 +208,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Clipboard Paste Modal -->
     <div class="modal" tabindex="-1" id="clipboardPasteModal">
         <div class="modal-dialog">

@@ -100,3 +100,52 @@ body {
 .table-compare tbody tr {
   height: 50px;
 }
+
+.modal-dialog {
+  max-width: 90%; /* 모달의 최대 너비 */
+  max-height: 90vh; /* 모달의 최대 높이 */
+  margin: auto; /* 중앙 정렬 */
+}
+
+#commitMessageModal .modal-dialog {
+  max-width: 50%; /* 최대 너비를 50%로 설정 */
+  width: 100%;    /* 작은 화면에서 유연한 너비 적용 */
+  margin: auto;   /* 중앙 정렬 */
+}
+
+#saveAsModal .modal-dialog {
+  max-width: 30%; /* 최대 너비를 50%로 설정 */
+  width: 100%;    /* 작은 화면에서 유연한 너비 적용 */
+  margin: auto;   /* 중앙 정렬 */
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh; /* 모달의 최대 높이 */
+}
+
+.modal-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.compare-tables-wrapper {
+  display: flex;
+  overflow-y: auto; /* 공통 스크롤 적용 */
+  max-height: 75vh; /* 모달의 높이 제한 */
+}
+
+.table-container {
+  flex-grow: 1;
+  margin: 0 5px; /* 좌우 여백 */
+}
+
+.table-compare thead {
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 2;
+}
