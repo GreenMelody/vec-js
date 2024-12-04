@@ -165,15 +165,19 @@ def get_vectorset_list():
 @app.route('/api/v1/va/vectorset-history', methods=['GET'])
 def get_vectorset_history():
     vectorset_name = request.args.get('vectorset_name')
+    user_id = session.get('user_id')  # 세션에서 현재 사용자 ID 가져오기
     if not vectorset_name:
         return jsonify({"error": "Missing vectorset_name parameter"}), 400
 
-    # 동일한 vectorset_name의 히스토리를 모두 가져오는 쿼리
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    # 동일한 사용자 및 동일한 vectorset_name의 히스토리를 가져오는 쿼리
     query = f"""
     SELECT f.file_name, f.vectorset_name, u.user_id AS owner, f.modified, f.comment
     FROM file f
     JOIN user u ON f.owner = u.user_index
-    WHERE f.vectorset_name = '{vectorset_name}'
+    WHERE f.vectorset_name = '{vectorset_name}' AND u.user_id = '{user_id}'
     ORDER BY f.modified DESC
     """
     result = db.query(query)
