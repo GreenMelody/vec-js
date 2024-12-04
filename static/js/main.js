@@ -1142,6 +1142,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const item1 = data1[i] || {};
             const item2 = data2[i] || {};
 
+            // `vectorset` 데이터 추출 및 latest에 따른 아이콘 추가
+            const vectorset1 = item1.linked
+                ? `${item1.linked_vectorset.latest === 1 ? '🔗' : '📌'}${item1.linked_vectorset.vectorset_name}`
+                : '';
+            const vectorset2 = item2.linked
+                ? `${item2.linked_vectorset.latest === 1 ? '🔗' : '📌'}${item2.linked_vectorset.vectorset_name}`
+                : '';
+    
             // 하이라이트 비교 함수
             function compareValues(value1, value2) {
                 return value1 !== value2 ? 'table-warning' : '';
@@ -1150,7 +1158,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // 좌측 테이블
             rowLeft.innerHTML = `
                 <td>${i}</td>
-                <td class="${compareValues(item1.vectorset, item2.vectorset)}">${item1.vectorset || ''}</td>
+                <td class="${compareValues(vectorset1, vectorset2)}">${vectorset1}</td>
                 <td class="${compareValues(item1.control_name, item2.control_name)}">${item1.control_name || ''}</td>
                 <td class="${compareValues(item1.address, item2.address)}">${item1.address || ''}</td>
                 <td class="${compareValues(item1.data, item2.data)}">${item1.data || ''}</td>
@@ -1159,7 +1167,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // 우측 테이블
             rowRight.innerHTML = `
                 <td>${i}</td>
-                <td class="${compareValues(item1.vectorset, item2.vectorset)}">${item2.vectorset || ''}</td>
+                <td class="${compareValues(vectorset1, vectorset2)}">${vectorset2}</td>
                 <td class="${compareValues(item1.control_name, item2.control_name)}">${item2.control_name || ''}</td>
                 <td class="${compareValues(item1.address, item2.address)}">${item2.address || ''}</td>
                 <td class="${compareValues(item1.data, item2.data)}">${item2.data || ''}</td>
