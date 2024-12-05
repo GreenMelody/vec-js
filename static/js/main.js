@@ -1198,5 +1198,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        fetch('/logout', { method: 'POST' })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/login';
+                } else {
+                    alert('Logout failed.');
+                }
+            })
+            .catch(error => console.error('Logout error:', error));
+    });
 
 });
