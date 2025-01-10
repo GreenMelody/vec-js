@@ -1,17 +1,17 @@
-import { populateSelect, populateTable, populateVectorTable } from "./tableUtils.js";
-import { selectRowByIndex, checkCyclicDependency } from "./dragAndDrop.js";
+import { populateSelect, populateTable, populateVectorTable } from './tableUtils.js';
+import { selectRowByIndex, checkCyclicDependency } from './dragAndDrop.js';
 import { getVectorData, setHierarchyData, getHierarchyData, getCurrentRowIndex, setCurrentRowIndex, getSelectedRow } from "./dataStore.js";
+import { clipboardPasteModal } from './modals.js';
 
 export const projectSelect = document.getElementById('projectName');
-export const evtVersionSelect = document.getElementById('evtVersionSelect');
-export const domainSelect = document.getElementById('domainSelect');
-export const fileNameDisplay = document.getElementById('fileNameDisplay');
+export const evtVersionSelect = document.getElementById('evtVersion');
+export const domainSelect = document.getElementById('domainName');
+export const fileNameDisplay = document.getElementById('fileName');
 export const vectorDetails = document.getElementById('vectorDetails');
-export const vectorTable = document.getElementById('vectorTable');
-const vectorSetTable = document.getElementById('vectorSetTable');
+export const vectorTable = document.getElementById('vectorList');
+const vectorSetTable = document.getElementById('vectorsetList');
 const searchVectorset = document.getElementById('searchVectorset');
 const searchVector = document.getElementById('searchVector');
-
 
 let isInitialLoad = true;
 let isPasteModalOpen = false;
@@ -21,9 +21,9 @@ export default function init() {
     fetch('/api/v1/va/hierarchy')
         .then(response => response.json())
         .then(data => {
-            hierarchyData = data.items;
-            populateSelect(projectSelect, Object.keys(hierarchyData));
-            if (isInitialLoad && Object.keys(hierarchyData).length > 1) {
+            setHierarchyData(data.items);
+            populateSelect(projectSelect, Object.keys(getHierarchyData()));
+            if (isInitialLoad && Object.keys(getHierarchyData()).length > 1) {
                 projectSelect.selectedIndex = 3;
             }
             updateEvtVersions();
@@ -55,8 +55,8 @@ export default function init() {
         event.preventDefault();
         const row = event.target.closest('tr');
         if (row) {
-            currentRowIndex = row.rowIndex - 1; // 행 인덱스 저장
-            const linked = vectorData[currentRowIndex].linked;
+            setCurrentRowIndex(row.rowIndex - 1); // 행 인덱스 저장
+            const linked = getVectorData()[getCurrentRowIndex()].linked;
             document.getElementById('switchLatest').style.display = linked === 1 ? 'block' : 'none';
 
             // 위치 설정 및 표시
@@ -77,24 +77,24 @@ export default function init() {
 
     vectorTable.addEventListener('drop', async function (event) {
         event.preventDefault();
-    
+
         const source = event.dataTransfer.getData('drag-source');
         if (source === 'external') {
             const data = JSON.parse(event.dataTransfer.getData('vectorset-data'));
             const fileName = data.fileName;
             const latest = data.latest || 0; // latest 값 포함
-    
+
             // 무한 루프 검사
             const hasCycle = await checkCyclicDependency(fileName, latest);
             if (hasCycle) {
                 alert(`Cannot add vectorset "${fileName}" due to a cyclic dependency.`);
                 return;
             }
-    
+
             // 마우스 커서가 위치한 행을 감지
             const targetRow = event.target.closest('tr');
-            const targetIndex = targetRow ? targetRow.rowIndex - 1 : vectorData.length; // targetRow가 없으면 마지막에 추가
-    
+            const targetIndex = targetRow ? targetRow.rowIndex - 1 : getVectorData().length; // targetRow가 없으면 마지막에 추가
+
             const newRow = {
                 index: targetIndex,
                 control_name: '',
@@ -107,17 +107,17 @@ export default function init() {
                     vectorset_name: data.vectorsetName
                 }
             };
-    
+
             // vectorData 배열의 targetIndex 위치에 새 행 추가
-            vectorData.splice(targetIndex, 0, newRow);
-    
+            getVectorData().splice(targetIndex, 0, newRow);
+
             // 삽입된 이후 행의 인덱스 값을 업데이트
-            for (let i = targetIndex + 1; i < vectorData.length; i++) {
-                vectorData[i].index = i;
+            for (let i = targetIndex + 1; i < getVectorData().length; i++) {
+                getVectorData()[i].index = i;
             }
-    
+
             // vectorData를 다시 렌더링
-            populateVectorTable(vectorTable, vectorData);
+            populateVectorTable(vectorTable, getVectorData());
         }
     });
 
@@ -133,9 +133,9 @@ export default function init() {
         // 테이블 외부를 클릭하고 붙여넣기 팝업이 열리지 않은 경우에만 targetRowIndex를 초기화
         if (!isClickInsideTable && !isPasteModalOpen) {
             targetRowIndex = null;
-            if (selectedRow) {
-                selectedRow.classList.remove('selected-row');
-                selectedRow = null;
+            if (getSelectedRow()) {
+                getSelectedRow().classList.remove('selected-row');
+                getSelectedRow() = null;
             }
         }
     }, true);
@@ -219,16 +219,16 @@ export default function init() {
                 rowData.data = clipboardRow.cells[2].textContent || '';         // 세 번째 셀 (data)
             }
 
-            vectorData.splice(targetRowIndex + index + 1, 0, rowData); // vectorData 배열에 삽입
+            getVectorData().splice(targetRowIndex + index + 1, 0, rowData); // vectorData 배열에 삽입
         });
 
         // 삽입된 이후의 인덱스 값을 모두 다시 계산
         for (let i = targetRowIndex + clipboardRows.length + 1; i < vectorData.length; i++) {
-            vectorData[i].index = i;
+            getVectorData()[i].index = i;
         }
 
         // vectorData를 다시 렌더링
-        populateVectorTable(vectorTable, vectorData);
+        populateVectorTable(vectorTable, getVectorData());
 
         clipboardPasteModal.hide(); // 팝업 닫기
     });
@@ -251,9 +251,9 @@ function filterTable(searchId, tableId) {
 
 function updateEvtVersions() {
     const project = projectSelect.value;
-    if (hierarchyData[project]) {
-        populateSelect(evtVersionSelect, Object.keys(hierarchyData[project]));
-        if (isInitialLoad && Object.keys(hierarchyData[project]).length > 0) {
+    if (getHierarchyData()[project]) {
+        populateSelect(evtVersionSelect, Object.keys(getHierarchyData()[project]));
+        if (isInitialLoad && Object.keys(getHierarchyData()[project]).length > 0) {
             evtVersionSelect.selectedIndex = 1;
         }
         updateDomains();
@@ -263,9 +263,9 @@ function updateEvtVersions() {
 function updateDomains() {
     const project = projectSelect.value;
     const evtVersion = evtVersionSelect.value;
-    if (hierarchyData[project] && hierarchyData[project][evtVersion]) {
-        populateSelect(domainSelect, hierarchyData[project][evtVersion]);
-        if (isInitialLoad && Object.keys(hierarchyData[project][evtVersion]).length > 0) {
+    if (getHierarchyData()[project] && getHierarchyData()[project][evtVersion]) {
+        populateSelect(domainSelect, getHierarchyData()[project][evtVersion]);
+        if (isInitialLoad && Object.keys(getHierarchyData()[project][evtVersion]).length > 0) {
             domainSelect.selectedIndex = 3;
         }
         updateVectorsetList();

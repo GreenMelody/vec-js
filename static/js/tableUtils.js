@@ -68,10 +68,9 @@ function loadVectorData(fileName) {
     fetch(`/api/v1/va/vector-list?file_name=${fileName}`)
         .then(response => response.json())
         .then(data => {
-            vectorData = data.items;
-            currentComment = data.comment;
-            populateVectorTable(vectorTable, vectorData);
-            currentFileName = fileName;
+            setVectorData(data.items);
+            populateVectorTable(vectorTable, getVectorData());
+            setCurrentFileName(fileName);
         })
         .catch(error => console.error('Error loading vector data:', error));
 }
@@ -205,38 +204,38 @@ function selectAllText(element) {
 
 // 'Add Row' 기능
 document.getElementById('insertRow').addEventListener('click', function() {
-    if (currentRowIndex !== null) {
+    if (getCurrentRowIndex() !== null) {
         const newRow = {
-            index: currentRowIndex + 1,
+            index: getCurrentRowIndex() + 1,
             control_name: '',
             address: '',
             data: '',
             linked: 0,
             linked_vectorset: { file_name: '', latest: 0, vectorset_name: '' }
         };
-        vectorData.splice(currentRowIndex, 0, newRow);
-        vectorData.forEach((row, index) => row.index = index); // 인덱스 업데이트
-        populateVectorTable(vectorTable, vectorData);
+        getVectorData().splice(getCurrentRowIndex(), 0, newRow);
+        getVectorData().forEach((row, index) => row.index = index); // 인덱스 업데이트
+        populateVectorTable(vectorTable, getVectorData());
     }
     contextMenu.style.display = 'none';
 });
 
 // 'Delete Row' 기능
 document.getElementById('deleteRow').addEventListener('click', function() {
-    if (currentRowIndex !== null) {
-        vectorData.splice(currentRowIndex, 1);
-        vectorData.forEach((row, index) => row.index = index); // 인덱스 업데이트
-        populateVectorTable(vectorTable, vectorData);
+    if (getCurrentRowIndex() !== null) {
+        getVectorData().splice(getCurrentRowIndex(), 1);
+        getVectorData().forEach((row, index) => row.index = index); // 인덱스 업데이트
+        populateVectorTable(vectorTable, getVectorData());
     }
     contextMenu.style.display = 'none';
 });
 
 // 'Switch Latest' 기능
 document.getElementById('switchLatest').addEventListener('click', function() {
-    if (currentRowIndex !== null && vectorData[currentRowIndex].linked === 1) {
-        vectorData[currentRowIndex].linked_vectorset.latest = 
-            vectorData[currentRowIndex].linked_vectorset.latest === 1 ? 0 : 1;
-        populateVectorTable(vectorTable, vectorData);
+    if (getCurrentRowIndex() !== null && getVectorData()[getCurrentRowIndex()].linked === 1) {
+        getVectorData()[getCurrentRowIndex()].linked_vectorset.latest = 
+            getVectorData()[getCurrentRowIndex()].linked_vectorset.latest === 1 ? 0 : 1;
+        populateVectorTable(vectorTable, getVectorData());
     }
     contextMenu.style.display = 'none';
 });

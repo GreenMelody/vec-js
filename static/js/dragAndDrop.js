@@ -47,7 +47,7 @@ export function addDragAndDropHandlers(row) {
         draggedRow.classList.remove('dragging');
         draggedRow = null;
         updateVectorDataOrder();  // 드래그 앤 드롭 후 vectorData 업데이트
-        populateVectorTable(vectorTable, vectorData); // 테이블을 다시 렌더링하여 업데이트된 순서 반영
+        populateVectorTable(vectorTable, getVectorData()); // 테이블을 다시 렌더링하여 업데이트된 순서 반영
     });
 
     dragHandle.addEventListener('dragover', function(event) {
@@ -90,7 +90,7 @@ function updateRowIndices() {
     const rows = vectorTable.querySelectorAll('tr');
     rows.forEach((row, index) => {
         row.cells[0].textContent = index;
-        vectorData[index].index = index;
+        getVectorData()[index].index = index;
     });
 }
 
@@ -125,18 +125,18 @@ function updateVectorDataOrder() {
     });
 
     // vectorData를 새로운 배열로 교체
-    vectorData = newVectorData;
+    setVectorData(newVectorData);
 }
 
 // 선택된 행을 시각적으로 표시하는 함수
 export function selectRowByIndex(index) {
-    if (selectedRow) {
-        selectedRow.classList.remove('selected-row');
+    if (getSelectedRow()) {
+        getSelectedRow().classList.remove('selected-row');
     }
 
     if (index !== null && vectorTable.rows[index]) {
-        selectedRow = vectorTable.rows[index];
-        selectedRow.classList.add('selected-row');
+        setSelectedRow(vectorTable.rows[index]);
+        getSelectedRow().classList.add('selected-row');
     }
 }
 
@@ -205,11 +205,11 @@ export async function checkCyclicDependency(newFileName, isLatest = 0) {
         const fileName = data.fileName;
 
         // 데이터 저장 및 표시
-        if (index === 0) vectorSet1 = fileName;
-        if (index === 1) vectorSet2 = fileName;
+        if (index === 0) setVectorSet1(fileName);
+        if (index === 1) setVectorSet2(fileName);
         dropArea.querySelector('span').textContent = fileName;
 
         // Compare 버튼 활성화
-        if (vectorSet1 && vectorSet2) compareBtn.disabled = false;
+        if (getVectorSet1() && getVectorSet2()) compareBtn.disabled = false;
     });
 });

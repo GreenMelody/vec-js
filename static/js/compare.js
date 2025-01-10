@@ -15,8 +15,8 @@ export function populateCompareTables(data1, data2) {
     const rightFileName = document.getElementById('rightFileName');
 
     // 파일 이름 설정
-    leftFileName.textContent = vectorSet1;
-    rightFileName.textContent = vectorSet2;
+    leftFileName.textContent = getVectorSet1();
+    rightFileName.textContent = getVectorSet2();
 
     tableLeft.innerHTML = '';
     tableRight.innerHTML = '';

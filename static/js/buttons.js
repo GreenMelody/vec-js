@@ -1,8 +1,8 @@
-import { updateVectorsetList, projectSelect, domainSelect, evtVersionSelect, vectorDetails, vectorTable } from "./init.js";
+import { updateVectorsetList, projectSelect, domainSelect, evtVersionSelect, vectorDetails, vectorTable, fileNameDisplay } from "./init.js";
 import { getCurrentFileName, getHierarchyData, getVectorData, getVectorSet1, getVectorSet2 } from "./dataStore.js";
-import { openVectorTableInNewWindow, commitMessageModal, compareModal, commentModal, saveAsModal} from "./modals.js";
+import { openVectorTableInNewWindow, commitMessageModal, compareModal, commentModal, saveAsModal } from "./modals.js";
 import { populateSelect, formatDate } from "./tableUtils.js";
-import { fetchVectorData, populateCompareTables } from "./compare.js"
+import { fetchVectorData, populateCompareTables } from "./compare.js";
 
 export function setupButtons() {
     const saveBtn = document.getElementById('saveBtn');
@@ -13,7 +13,7 @@ export function setupButtons() {
     const saveAsEvt = document.getElementById('saveAsEvt');
     const saveAsDomain = document.getElementById('saveAsDomain');
     const compareBtn = document.getElementById('compareBtn');
-    const refereshBtn = document.getElementById('refereshBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
     const logoutBtn = document.getElementById('logoutBtn');
 
     logoutBtn.addEventListener('click', function() {
@@ -34,11 +34,11 @@ export function setupButtons() {
 
     // Compare 버튼 클릭
     compareBtn.addEventListener('click', async () => {
-        if (!vectorSet1 || !vectorSet2) return;
+        if (!getVectorSet1() || !getVectorSet2()) return;
 
         const [data1, data2] = await Promise.all([
-            fetchVectorData(vectorSet1),
-            fetchVectorData(vectorSet2),
+            fetchVectorData(getVectorSet1()),
+            fetchVectorData(getVectorSet2()),
         ]);
 
         populateCompareTables(data1, data2);
@@ -140,12 +140,12 @@ export function setupButtons() {
     });
 
     saveBtn.addEventListener('click', function() {
-        if (!vectorData || vectorData.length === 0) {
+        if (!getVectorData() || getVectorData().length === 0) {
             alert('NO DATA TO SAVE');
             return;
         }
 
-        if (currentFileName) {
+        if (getCurrentFileName()) {
             document.getElementById('commitMessageText').value='';
             commitMessageModal.show();
         } else {
@@ -160,35 +160,35 @@ export function setupButtons() {
             return;
         }
         commitMessageModal.hide();
-        uploadVectorFile(currentFileName, commitMessage);
+        uploadVectorFile(getCurrentFileName(), commitMessage);
     });
 
     // Save As 버튼 클릭 이벤트 수정
     saveAsBtn.addEventListener('click', function() {
-        if (!vectorData || vectorData.length === 0) {
+        if (!getVectorData() || getVectorData().length === 0) {
             alert('NO DATA TO SAVE');
             return;
         }
-    
+
         // 현재 선택된 project, evt version, domain, vectorset 가져오기
         const selectedProject = projectSelect.value;
         const selectedEvtVersion = evtVersionSelect.value;
         const selectedDomain = domainSelect.value;
         const selectedVectorset = vectorDetails.textContent.split(' > ').pop();
-    
+
         // 필드 초기화 및 현재 선택된 값 할당
-        populateSelect(saveAsProject, Object.keys(hierarchyData));
+        populateSelect(saveAsProject, Object.keys(getHierarchyData()));
         saveAsProject.value = selectedProject;
-    
+
         // evt version과 domain을 populate하고 초기값으로 선택
-        populateSelect(saveAsEvt, Object.keys(hierarchyData[selectedProject]));
+        populateSelect(saveAsEvt, Object.keys(getHierarchyData()[selectedProject]));
         saveAsEvt.value = selectedEvtVersion;
-    
-        populateSelect(saveAsDomain, hierarchyData[selectedProject][selectedEvtVersion]);
+
+        populateSelect(saveAsDomain, getHierarchyData()[selectedProject][selectedEvtVersion]);
         saveAsDomain.value = selectedDomain;
-    
+
         saveAsVectorset.value = selectedVectorset || '';
-    
+
         saveAsModal.show();
     });
 
@@ -198,7 +198,7 @@ export function setupButtons() {
             alert('No file loaded.');
             return;
         }
-    
+
         // API 호출
         fetch(`/api/v1/va/vectorset-history?file_name=${encodeURIComponent(fileName)}`)
             .then(response => response.json())
@@ -207,11 +207,11 @@ export function setupButtons() {
                     alert(`Error fetching history: ${data.error}`);
                     return;
                 }
-    
+
                 // 히스토리를 테이블로 표시
                 const historyTableBody = document.getElementById('commentHistoryTableBody');
                 historyTableBody.innerHTML = ''; // 기존 내용 초기화
-    
+
                 data.history.forEach(record => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
@@ -233,22 +233,22 @@ export function setupButtons() {
 
     saveAsProject.addEventListener('change', function() {
         const project = saveAsProject.value;
-        populateSelect(saveAsEvt, Object.keys(hierarchyData[project]));
+        populateSelect(saveAsEvt, Object.keys(getHierarchyData()[project]));
         const evt = saveAsEvt.value;
-        populateSelect(saveAsDomain, hierarchyData[project][evt]);
+        populateSelect(saveAsDomain, getHierarchyData()[project][evt]);
     });
 
     saveAsEvt.addEventListener('change', function() {
         const project = saveAsProject.value;
         const evt = saveAsEvt.value;
-        populateSelect(saveAsDomain, hierarchyData[project][evt]);
+        populateSelect(saveAsDomain, getHierarchyData()[project][evt]);
     });
 
     saveAsConfirmBtn.addEventListener('click', function() {
         const newFileName = `${saveAsProject.value}_${saveAsEvt.value}_${saveAsDomain.value}_${saveAsVectorset.value}_.json`;
         const payload = {
             file_name: newFileName,
-            vectors: {items: vectorData},
+            vectors: { items: getVectorData() },
             project_name: saveAsProject.value,
             evt_version: saveAsEvt.value,
             domain_name: saveAsDomain.value,
@@ -277,7 +277,7 @@ export function setupButtons() {
 function uploadVectorFile(fileName, commitMessage) {
     const payload = {
         file_name: fileName,
-        vectors: { items: vectorData },
+        vectors: { items: getVectorData() },
         project_name: projectSelect.value,
         evt_version: evtVersionSelect.value,
         domain_name: domainSelect.value,
@@ -303,7 +303,7 @@ function uploadVectorFile(fileName, commitMessage) {
 
 // 새창열기 버튼 클릭 이벤트 추가
 openInNewWindowBtn.addEventListener('click', function() {
-    if (!vectorData || vectorData.length === 0) {
+    if (!getVectorData() || getVectorData().length === 0) {
         alert("Please select vector first.");
         return;
     }

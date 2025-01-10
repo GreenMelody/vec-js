@@ -5,5 +5,5 @@ export const saveAsModal = new bootstrap.Modal(document.getElementById('saveAsMo
 export const clipboardPasteModal = new bootstrap.Modal(document.getElementById('clipboardPasteModal'));
 
 export function openVectorTableInNewWindow(fileName, isLatest) {
-    const newWindow = window.open(`/vector_table_view?file_name=${encodeURIComponent(fileName)}&lastest=${isLatest}`, '_blank', 'width=800,height=600,left=200,top=100');
+    const newWindow = window.open(`/vector_table_view?file_name=${encodeURIComponent(fileName)}&latest=${isLatest}`, '_blank', 'width=800,height=600,left=200,top=100');
 }
